@@ -9,12 +9,12 @@ import torch.nn.parallel
 import torch.backends.cudnn as cudnn
 import torch.optim
 
-from pose.utils.logger import Logger, savefig
-from pose.utils.evaluation import accuracy, AverageMeter, final_preds
-from pose.utils.misc import save_checkpoint, save_pred, adjust_learning_rate
-from pose.utils.imutils import batch_with_heatmap
-from pose.utils.transforms import fliplr, flip_back
-from pose import models, datasets, losses
+from stacked_hourglass.utils.logger import Logger, savefig
+from stacked_hourglass.utils.evaluation import accuracy, AverageMeter, final_preds
+from stacked_hourglass.utils.misc import save_checkpoint, save_pred, adjust_learning_rate
+from stacked_hourglass.utils.imutils import batch_with_heatmap
+from stacked_hourglass.utils.transforms import fliplr, flip_back
+from stacked_hourglass import models, datasets, losses
 
 
 # get model names and dataset names
@@ -59,8 +59,7 @@ def main(args):
     print("==> creating model '{}', stacks={}, blocks={}".format(args.arch, args.stacks, args.blocks))
     model = models.__dict__[args.arch](num_stacks=args.stacks,
                                        num_blocks=args.blocks,
-                                       num_classes=njoints,
-                                       resnet_layers=args.resnet_layers)
+                                       num_classes=njoints)
 
     model = torch.nn.DataParallel(model).to(device)
 

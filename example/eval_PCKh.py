@@ -5,14 +5,14 @@ from importlib_resources import open_binary
 from numpy import transpose
 from scipy.io import loadmat
 
-import pose.res
+import stacked_hourglass.res
 
 
 def main(args):
     threshold = 0.5
     SC_BIAS = 0.6
 
-    dict = loadmat(open_binary(pose.res, 'detections_our_format.mat'))
+    dict = loadmat(open_binary(stacked_hourglass.res, 'detections_our_format.mat'))
     dataset_joints = dict['dataset_joints']
     jnt_missing = dict['jnt_missing']
     pos_gt_src = dict['pos_gt_src']
