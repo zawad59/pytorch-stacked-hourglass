@@ -12,7 +12,6 @@ import torch.optim
 from pose.utils.logger import Logger, savefig
 from pose.utils.evaluation import accuracy, AverageMeter, final_preds
 from pose.utils.misc import save_checkpoint, save_pred, adjust_learning_rate
-from pose.utils.osutils import mkdir_p, isfile, isdir, join
 from pose.utils.imutils import batch_with_heatmap
 from pose.utils.transforms import fliplr, flip_back
 from pose import models, datasets, losses
@@ -52,8 +51,7 @@ def main(args):
         assert False
 
     # create checkpoint dir
-    if not isdir(args.checkpoint):
-        mkdir_p(args.checkpoint)
+    os.makedirs(args.checkpoint, exist_ok=True)
 
     # create model
     njoints = datasets.__dict__[args.dataset].njoints
@@ -86,7 +84,7 @@ def main(args):
     # optionally resume from a checkpoint
     title = args.dataset + ' ' + args.arch
     if args.resume:
-        if isfile(args.resume):
+        if os.path.isfile(args.resume):
             print("=> loading checkpoint '{}'".format(args.resume))
             checkpoint = torch.load(args.resume)
             args.start_epoch = checkpoint['epoch']
@@ -95,11 +93,11 @@ def main(args):
             optimizer.load_state_dict(checkpoint['optimizer'])
             print("=> loaded checkpoint '{}' (epoch {})"
                   .format(args.resume, checkpoint['epoch']))
-            logger = Logger(join(args.checkpoint, 'log.txt'), title=title, resume=True)
+            logger = Logger(os.path.join(args.checkpoint, 'log.txt'), title=title, resume=True)
         else:
             print("=> no checkpoint found at '{}'".format(args.resume))
     else:
-        logger = Logger(join(args.checkpoint, 'log.txt'), title=title)
+        logger = Logger(os.path.join(args.checkpoint, 'log.txt'), title=title)
         logger.set_names(['Epoch', 'LR', 'Train Loss', 'Val Loss',
                           'Train Acc', 'Val Acc'])
 
