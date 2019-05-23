@@ -1,7 +1,5 @@
 # A simple torch style logger
 # (C) Wei YANG 2017
-from __future__ import absolute_import
-
 import os
 import sys
 import numpy as np

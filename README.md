@@ -8,7 +8,7 @@ for use as a Python package.
 Generate predictions file (PCKh score printed is not the proper reported value):
 
 ```
-$ python example/main.py --dataset mpii \
+$ python src/example/main.py --dataset mpii \
     --anno-path data/mpii/mpii_annotations.json \
     --image-path /data/datasets/MPII_Human_Pose/images \
     -a hg --stacks 2 --blocks 1 --checkpoint checkpoint/mpii/hg_s2_b1 \
