@@ -5,9 +5,18 @@ Use lr=0.01 for current version
 '''
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.hub import load_state_dict_from_url
 
 
 __all__ = ['HourglassNet', 'hg']
+
+
+model_urls = {
+    'hg1': 'https://github.com/anibali/pytorch-stacked-hourglass/releases/download/v0.0.0/bearpaw_hg1-ce125879.pth',
+    'hg2': 'https://github.com/anibali/pytorch-stacked-hourglass/releases/download/v0.0.0/bearpaw_hg2-15e342d9.pth',
+    'hg8': 'https://github.com/anibali/pytorch-stacked-hourglass/releases/download/v0.0.0/bearpaw_hg8-90e5d470.pth',
+}
+
 
 class Bottleneck(nn.Module):
     expansion = 2
@@ -180,3 +189,23 @@ def hg(**kwargs):
     model = HourglassNet(Bottleneck, num_stacks=kwargs['num_stacks'], num_blocks=kwargs['num_blocks'],
                          num_classes=kwargs['num_classes'])
     return model
+
+
+def _hg(arch, pretrained, progress, **kwargs):
+    model = hg(**kwargs)
+    if pretrained:
+        state_dict = load_state_dict_from_url(model_urls[arch], progress=progress)
+        model.load_state_dict(state_dict)
+    return model
+
+
+def hg1(pretrained=False, progress=True, **kwargs):
+    return _hg('hg1', pretrained, progress, **kwargs, num_stacks=1)
+
+
+def hg2(pretrained=False, progress=True, **kwargs):
+    return _hg('hg2', pretrained, progress, **kwargs, num_stacks=2)
+
+
+def hg8(pretrained=False, progress=True, **kwargs):
+    return _hg('hg8', pretrained, progress, **kwargs, num_stacks=8)

@@ -359,9 +359,6 @@ if __name__ == '__main__':
                         help='Number of hourglasses to stack')
     parser.add_argument('--features', default=256, type=int, metavar='N',
                         help='Number of features in the hourglass')
-    parser.add_argument('--resnet-layers', default=50, type=int, metavar='N',
-                        help='Number of resnet layers',
-                        choices=[18, 34, 50, 101, 152])
     parser.add_argument('-b', '--blocks', default=1, type=int, metavar='N',
                         help='Number of residual modules at each location in the hourglass')
     # Training strategy
