@@ -1,14 +1,17 @@
 from __future__ import print_function, absolute_import
 
+import gzip
 import json
 import os
 import random
 
 import torch
 import torch.utils.data as data
+from importlib_resources import open_binary
 
-from pose.utils.misc import to_torch
+import pose.res
 from pose.utils.imutils import load_image, draw_labelmap
+from pose.utils.misc import to_torch
 from pose.utils.transforms import shufflelr, crop, color_normalize, fliplr, transform
 
 
@@ -18,7 +21,6 @@ class Mpii(data.Dataset):
 
     def __init__(self, is_train = True, **kwargs):
         self.img_folder = kwargs['image_path'] # root image folders
-        self.jsonfile   = kwargs['anno_path']
         self.is_train   = is_train # training set or test set
         self.inp_res    = kwargs['inp_res']
         self.out_res    = kwargs['out_res']
@@ -28,7 +30,8 @@ class Mpii(data.Dataset):
         self.label_type = kwargs['label_type']
 
         # create train/val split
-        with open(self.jsonfile) as anno_file:
+
+        with gzip.open(open_binary(pose.res, 'mpii_annotations.json.gz')) as anno_file:
             self.anno = json.load(anno_file)
 
         self.train_list, self.valid_list = [], []
