@@ -1,19 +1,21 @@
 from __future__ import print_function, absolute_import
 
-import os
-import numpy as np
 import json
+import os
 import random
-import math
 
 import torch
 import torch.utils.data as data
 
-from pose.utils.imutils import *
-from pose.utils.transforms import *
+from pose.utils.misc import to_torch
+from pose.utils.imutils import load_image, draw_labelmap
+from pose.utils.transforms import shufflelr, crop, color_normalize, fliplr, transform
 
 
 class Mpii(data.Dataset):
+    RGB_MEAN = torch.as_tensor([0.4404, 0.4440, 0.4327])
+    RGB_STDDEV = torch.as_tensor([0.2458, 0.2410, 0.2468])
+
     def __init__(self, is_train = True, **kwargs):
         self.img_folder = kwargs['image_path'] # root image folders
         self.jsonfile   = kwargs['anno_path']
@@ -35,33 +37,8 @@ class Mpii(data.Dataset):
                 self.valid_list.append(idx)
             else:
                 self.train_list.append(idx)
-        self.mean, self.std = self._compute_mean()
-
-    def _compute_mean(self):
-        meanstd_file = './data/mpii/mean.pth.tar'
-        if os.path.isfile(meanstd_file):
-            meanstd = torch.load(meanstd_file)
-        else:
-            mean = torch.zeros(3)
-            std = torch.zeros(3)
-            for index in self.train_list:
-                a = self.anno[index]
-                img_path = os.path.join(self.img_folder, a['img_paths'])
-                img = load_image(img_path) # CxHxW
-                mean += img.view(img.size(0), -1).mean(1)
-                std += img.view(img.size(0), -1).std(1)
-            mean /= len(self.train_list)
-            std /= len(self.train_list)
-            meanstd = {
-                'mean': mean,
-                'std': std,
-                }
-            torch.save(meanstd, meanstd_file)
-        if self.is_train:
-            print('    Mean: %.4f, %.4f, %.4f' % (meanstd['mean'][0], meanstd['mean'][1], meanstd['mean'][2]))
-            print('    Std:  %.4f, %.4f, %.4f' % (meanstd['std'][0], meanstd['std'][1], meanstd['std'][2]))
-
-        return meanstd['mean'], meanstd['std']
+        self.mean = self.RGB_MEAN
+        self.std = self.RGB_STDDEV
 
     def __getitem__(self, index):
         sf = self.scale_factor

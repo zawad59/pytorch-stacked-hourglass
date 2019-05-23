@@ -1,11 +1,9 @@
-import os
 import numpy as np
 import scipy.misc
-import matplotlib.pyplot as plt
 import torch
 
-from .misc import *
-from .imutils import *
+from .imutils import im_to_numpy, im_to_torch
+from .misc import to_torch
 
 
 def color_normalize(x, mean, std):
