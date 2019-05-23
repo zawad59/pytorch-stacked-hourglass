@@ -6,8 +6,6 @@ Use lr=0.01 for current version
 import torch.nn as nn
 import torch.nn.functional as F
 
-# from .preresnet import BasicBlock, Bottleneck
-
 
 __all__ = ['HourglassNet', 'hg']
 

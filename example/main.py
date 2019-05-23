@@ -4,6 +4,7 @@ import os
 import argparse
 import time
 import matplotlib.pyplot as plt
+from progress.bar import Bar
 
 import torch
 import torch.nn.parallel
@@ -12,7 +13,6 @@ import torch.optim
 import torchvision.datasets as datasets
 
 import _init_paths
-from pose import Bar
 from pose.utils.logger import Logger, savefig
 from pose.utils.evaluation import accuracy, AverageMeter, final_preds
 from pose.utils.misc import save_checkpoint, save_pred, adjust_learning_rate
