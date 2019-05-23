@@ -1,9 +1,10 @@
-import torch
-import torch.nn as nn
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy.misc
+import torch
 
-from .misc import *
+from .misc import to_numpy, to_torch
+
 
 def im_to_numpy(img):
     img = to_numpy(img)
@@ -163,7 +164,10 @@ def sample_with_heatmap(inp, out, num_rows=2, parts_to_show=None):
 
     return full_img
 
-def batch_with_heatmap(inputs, outputs, mean=torch.Tensor([0.5, 0.5, 0.5]).cuda(), num_rows=2, parts_to_show=None):
+def batch_with_heatmap(inputs, outputs, mean=None, num_rows=2, parts_to_show=None):
+    if mean is None:
+        mean = torch.as_tensor([0.5, 0.5, 0.5])
+    mean = mean.to(inputs.device)
     batch_img = []
     for n in range(min(inputs.size(0), 4)):
         inp = inputs[n] + mean.view(3, 1, 1).expand_as(inputs[n])

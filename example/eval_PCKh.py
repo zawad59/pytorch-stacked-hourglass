@@ -1,15 +1,18 @@
 import argparse
 
 import numpy as np
+from importlib_resources import open_binary
 from numpy import transpose
 from scipy.io import loadmat
+
+import pose.res
 
 
 def main(args):
     threshold = 0.5
     SC_BIAS = 0.6
 
-    dict = loadmat('evaluation/data/detections_our_format.mat')
+    dict = loadmat(open_binary(pose.res, 'detections_our_format.mat'))
     dataset_joints = dict['dataset_joints']
     jnt_missing = dict['jnt_missing']
     pos_gt_src = dict['pos_gt_src']
@@ -48,23 +51,15 @@ def main(args):
     less_than_threshold = np.multiply((scaled_uv_err < threshold), jnt_visible)
     PCKh = np.divide(100. * np.sum(less_than_threshold, axis=1), jnt_count)
 
-    # save
-    rng = np.arange(0, 0.5, 0.01)
-    pckAll = np.zeros((len(rng), 16))
-
-    for r in range(len(rng)):
-        threshold = rng[r]
-        less_than_threshold = np.multiply(scaled_uv_err < threshold, jnt_visible)
-        pckAll[r, :] = np.divide(100.*np.sum(less_than_threshold, axis=1), jnt_count)
-
     PCKh = np.ma.array(PCKh, mask=False)
     PCKh.mask[6:8] = True
 
     print('\nPrediction file: {}\n'.format(args.result))
     print("Head,   Shoulder, Elbow,  Wrist,   Hip ,     Knee  , Ankle ,  Mean")
-    print('{:.2f}  {:.2f}     {:.2f}  {:.2f}   {:.2f}   {:.2f}   {:.2f}   {:.2f}'.format(PCKh[head], 0.5 * (PCKh[lsho] + PCKh[rsho])\
-            , 0.5 * (PCKh[lelb] + PCKh[relb]),0.5 * (PCKh[lwri] + PCKh[rwri]), 0.5 * (PCKh[lhip] + PCKh[rhip]), 0.5 * (PCKh[lkne] + PCKh[rkne]) \
-            , 0.5 * (PCKh[lank] + PCKh[rank]), np.mean(PCKh)))
+    print('{:.2f}  {:.2f}     {:.2f}  {:.2f}   {:.2f}   {:.2f}   {:.2f}   {:.2f}'.format(
+        PCKh[head], 0.5 * (PCKh[lsho] + PCKh[rsho]), 0.5 * (PCKh[lelb] + PCKh[relb]),
+        0.5 * (PCKh[lwri] + PCKh[rwri]), 0.5 * (PCKh[lhip] + PCKh[rhip]),
+        0.5 * (PCKh[lkne] + PCKh[rkne]), 0.5 * (PCKh[lank] + PCKh[rank]), np.mean(PCKh)))
 
 
 if __name__ == '__main__':
