@@ -15,6 +15,7 @@ from stacked_hourglass.utils.misc import save_checkpoint, save_pred, adjust_lear
 from stacked_hourglass.utils.imutils import batch_with_heatmap
 from stacked_hourglass.utils.transforms import fliplr, flip_back
 from stacked_hourglass import models, datasets, losses
+from stacked_hourglass.datasets.mpii import print_mpii_validation_accuracy
 
 
 # get model names and dataset names
@@ -123,6 +124,8 @@ def main(args):
         print('\nEvaluation only')
         loss, acc, predictions = validate(val_loader, model, criterion, njoints,
                                           args.debug, args.flip)
+        print('\nPCKh scores following proper evaluation protocol:')
+        print_mpii_validation_accuracy(predictions)
         save_pred(predictions, checkpoint=args.checkpoint)
         return
 
@@ -332,7 +335,7 @@ def validate(val_loader, model, criterion, num_classes, debug=False, flip=True):
     return losses.avg, acces.avg, predictions
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
+    parser = argparse.ArgumentParser(description='PyTorch Stacked Hourglass training')
     # Dataset setting
     parser.add_argument('--dataset', metavar='DATASET', default='mpii',
                         choices=dataset_names,

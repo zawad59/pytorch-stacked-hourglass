@@ -52,6 +52,19 @@ class HumanPosePredictor:
             return heatmaps[0]
 
     def estimate_joints(self, images, flip=False):
+        """Estimate human joint locations from input images.
+
+        Images are expected to be centred on a human subject and scaled reasonably.
+
+        Args:
+            images: The images to estimate joint locations for. Can be a single image or a list
+                    of images.
+            flip (bool): If set to true, evaluates on flipped versions of the images as well and
+                         averages the results.
+
+        Returns:
+            The predicted human joint locations.
+        """
         is_multiple = isinstance(images, (tuple, list))
         raw_images = images if is_multiple else [images]
         heatmaps = self.estimate_heatmaps(raw_images, flip=flip).cpu()

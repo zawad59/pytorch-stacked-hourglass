@@ -1,18 +1,25 @@
-from __future__ import print_function, absolute_import
-
 import gzip
 import json
 import os
 import random
 
+import numpy as np
 import torch
 import torch.utils.data as data
 from importlib_resources import open_binary
+from scipy.io import loadmat
 
 import stacked_hourglass.res
 from stacked_hourglass.utils.imutils import load_image, draw_labelmap
 from stacked_hourglass.utils.misc import to_torch
 from stacked_hourglass.utils.transforms import shufflelr, crop, color_normalize, fliplr, transform
+
+MPII_JOINT_NAMES = [
+    'right_ankle', 'right_knee', 'right_hip', 'left_hip',
+    'left_knee', 'left_ankle', 'pelvis', 'spine',
+    'neck', 'head_top', 'right_wrist', 'right_elbow',
+    'right_shoulder', 'left_shoulder', 'left_elbow', 'left_wrist'
+]
 
 
 class Mpii(data.Dataset):
@@ -113,7 +120,63 @@ class Mpii(data.Dataset):
             return len(self.valid_list)
 
 
+def evaluate_mpii_validation_accuracy(preds):
+    threshold = 0.5
+    SC_BIAS = 0.6
+
+    dict = loadmat(open_binary(stacked_hourglass.res, 'detections_our_format.mat'))
+    jnt_missing = dict['jnt_missing']
+    pos_gt_src = dict['pos_gt_src']
+    headboxes_src = dict['headboxes_src']
+
+    preds = np.array(preds)
+    assert preds.shape == (pos_gt_src.shape[2], pos_gt_src.shape[0], pos_gt_src.shape[1])
+    pos_pred_src = np.transpose(preds, [1, 2, 0])
+
+    jnt_visible = 1 - jnt_missing
+    uv_error = pos_pred_src - pos_gt_src
+    uv_err = np.linalg.norm(uv_error, axis=1)
+    headsizes = headboxes_src[1, :, :] - headboxes_src[0, :, :]
+    headsizes = np.linalg.norm(headsizes, axis=0)
+    headsizes *= SC_BIAS
+    scale = np.multiply(headsizes, np.ones((len(uv_err), 1)))
+    scaled_uv_err = np.divide(uv_err, scale)
+    scaled_uv_err = np.multiply(scaled_uv_err, jnt_visible)
+    jnt_count = np.sum(jnt_visible, axis=1)
+    less_than_threshold = np.multiply((scaled_uv_err < threshold), jnt_visible)
+    PCKh = np.divide(100. * np.sum(less_than_threshold, axis=1), jnt_count)
+
+    PCKh = np.ma.array(PCKh, mask=False)
+    PCKh.mask[6:8] = True
+
+    return PCKh
+
+
+def print_mpii_validation_accuracy(preds):
+    PCKh = evaluate_mpii_validation_accuracy(preds)
+
+    head = MPII_JOINT_NAMES.index('head_top')
+    lsho = MPII_JOINT_NAMES.index('left_shoulder')
+    lelb = MPII_JOINT_NAMES.index('left_elbow')
+    lwri = MPII_JOINT_NAMES.index('left_wrist')
+    lhip = MPII_JOINT_NAMES.index('left_hip')
+    lkne = MPII_JOINT_NAMES.index('left_knee')
+    lank = MPII_JOINT_NAMES.index('left_ankle')
+    rsho = MPII_JOINT_NAMES.index('right_shoulder')
+    relb = MPII_JOINT_NAMES.index('right_elbow')
+    rwri = MPII_JOINT_NAMES.index('right_wrist')
+    rkne = MPII_JOINT_NAMES.index('right_knee')
+    rank = MPII_JOINT_NAMES.index('right_ankle')
+    rhip = MPII_JOINT_NAMES.index('right_hip')
+
+    print("Head,   Shoulder, Elbow,  Wrist,   Hip ,     Knee  , Ankle ,  Mean")
+    print('{:.2f}  {:.2f}     {:.2f}  {:.2f}   {:.2f}   {:.2f}   {:.2f}   {:.2f}'.format(
+        PCKh[head], 0.5 * (PCKh[lsho] + PCKh[rsho]), 0.5 * (PCKh[lelb] + PCKh[relb]),
+        0.5 * (PCKh[lwri] + PCKh[rwri]), 0.5 * (PCKh[lhip] + PCKh[rhip]),
+        0.5 * (PCKh[lkne] + PCKh[rkne]), 0.5 * (PCKh[lank] + PCKh[rank]), np.mean(PCKh)))
+
+
 def mpii(**kwargs):
     return Mpii(**kwargs)
 
-mpii.njoints = 16  # ugly but works
+mpii.njoints = len(MPII_JOINT_NAMES)  # ugly but works
