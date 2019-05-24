@@ -199,13 +199,16 @@ def _hg(arch, pretrained, progress, **kwargs):
     return model
 
 
-def hg1(pretrained=False, progress=True, **kwargs):
-    return _hg('hg1', pretrained, progress, **kwargs, num_stacks=1)
+def hg1(pretrained=False, progress=True, num_blocks=1, num_classes=16):
+    return _hg('hg1', pretrained, progress, num_stacks=1, num_blocks=num_blocks,
+               num_classes=num_classes)
 
 
-def hg2(pretrained=False, progress=True, **kwargs):
-    return _hg('hg2', pretrained, progress, **kwargs, num_stacks=2)
+def hg2(pretrained=False, progress=True, num_blocks=1, num_classes=16):
+    return _hg('hg2', pretrained, progress, num_stacks=2, num_blocks=num_blocks,
+               num_classes=num_classes)
 
 
-def hg8(pretrained=False, progress=True, **kwargs):
-    return _hg('hg8', pretrained, progress, **kwargs, num_stacks=8)
+def hg8(pretrained=False, progress=True, num_blocks=1, num_classes=16):
+    return _hg('hg8', pretrained, progress, num_stacks=8, num_blocks=num_blocks,
+               num_classes=num_classes)

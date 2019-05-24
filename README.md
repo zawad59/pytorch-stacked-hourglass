@@ -7,7 +7,7 @@ for use as a Python package.
 
 Generate predictions file (PCKh score printed is not the proper reported value):
 
-```
+```bash
 $ python example/main.py --dataset mpii \
     --image-path /data/datasets/MPII_Human_Pose/images \
     -a hg --stacks 2 --blocks 1 --checkpoint checkpoint/mpii/hg_s2_b1 \
@@ -16,6 +16,6 @@ $ python example/main.py --dataset mpii \
 
 Calculate proper PCKh:
 
-```
+```bash
 $ python example/eval_PCKh.py -r checkpoint/mpii/hg_s2_b1/preds_valid.mat
 ```

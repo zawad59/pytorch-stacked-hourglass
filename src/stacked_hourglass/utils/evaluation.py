@@ -68,7 +68,7 @@ def accuracy(output, target, idxs, thr=0.5):
         acc[0] = avg_acc / cnt
     return acc
 
-def final_preds(output, center, scale, res):
+def final_preds_untransformed(output, res):
     coords = get_preds(output) # float type
 
     # pose-processing
@@ -81,6 +81,14 @@ def final_preds(output, center, scale, res):
                 diff = torch.Tensor([hm[py - 1][px] - hm[py - 1][px - 2], hm[py][px - 1]-hm[py - 2][px - 1]])
                 coords[n][p] += diff.sign() * .25
     coords += 0.5
+
+    if coords.dim() < 3:
+        coords = coords.unsqueeze(0)
+
+    return coords
+
+def final_preds(output, center, scale, res):
+    coords = final_preds_untransformed(output, res)
     preds = coords.clone()
 
     # Transform back
@@ -88,7 +96,7 @@ def final_preds(output, center, scale, res):
         preds[i] = transform_preds(coords[i], center[i], scale[i], res)
 
     if preds.dim() < 3:
-        preds = preds.view(1, preds.size())
+        preds = preds.unsqueeze(0)
 
     return preds
 

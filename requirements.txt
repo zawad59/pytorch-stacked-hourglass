@@ -1,3 +1,4 @@
+# For main code
 easydict==1.9
 importlib_resources==1.0.2
 matplotlib==3.1.0
@@ -5,3 +6,6 @@ progress==1.5
 scipy==1.1.0
 torch==1.1.0
 torchvision==0.3.0
+
+# For tests only
+pytest==4.5.0
