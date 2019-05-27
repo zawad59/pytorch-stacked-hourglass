@@ -8,6 +8,7 @@ import torch
 import torch.utils.data as data
 from importlib_resources import open_binary
 from scipy.io import loadmat
+from tabulate import tabulate
 
 import stacked_hourglass.res
 from stacked_hourglass.utils.imutils import load_image, draw_labelmap
@@ -170,11 +171,12 @@ def print_mpii_validation_accuracy(preds):
     rank = MPII_JOINT_NAMES.index('right_ankle')
     rhip = MPII_JOINT_NAMES.index('right_hip')
 
-    print("Head,   Shoulder, Elbow,  Wrist,   Hip ,     Knee  , Ankle ,  Mean")
-    print('{:.2f}  {:.2f}     {:.2f}  {:.2f}   {:.2f}   {:.2f}   {:.2f}   {:.2f}'.format(
-        PCKh[head], 0.5 * (PCKh[lsho] + PCKh[rsho]), 0.5 * (PCKh[lelb] + PCKh[relb]),
+    print(tabulate([
+        ['Head', 'Shoulder', 'Elbow', 'Wrist', 'Hip', 'Knee', 'Ankle', 'Mean'],
+        [PCKh[head], 0.5 * (PCKh[lsho] + PCKh[rsho]), 0.5 * (PCKh[lelb] + PCKh[relb]),
         0.5 * (PCKh[lwri] + PCKh[rwri]), 0.5 * (PCKh[lhip] + PCKh[rhip]),
-        0.5 * (PCKh[lkne] + PCKh[rkne]), 0.5 * (PCKh[lank] + PCKh[rank]), np.mean(PCKh)))
+        0.5 * (PCKh[lkne] + PCKh[rkne]), 0.5 * (PCKh[lank] + PCKh[rank]), np.mean(PCKh)]
+    ], headers='firstrow', floatfmt='0.2f'))
 
 
 def mpii(*args, **kwargs):

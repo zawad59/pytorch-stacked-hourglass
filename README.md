@@ -37,7 +37,7 @@ print('Right elbow location: ', joints[MPII_JOINT_NAMES.index('right_elbow')])
 ```
 
 
-## Examples
+## Example scripts
 
 
 ### Evaluation on the MPII validation set
@@ -46,7 +46,7 @@ Here's a quick example of evaluating the pretrained 2-stack hourglass model on t
 Pose validation set.
 
 ```bash
-$ python example/evaluate_mpii.py --model=hg2 --image-path=/path/to/mpii/images
+$ python scripts/evaluate_mpii.py --arch=hg2 --image-path=/path/to/mpii/images
 ```
 
 Output:
@@ -55,4 +55,19 @@ Output:
 Final validation PCKh scores:
 Head,   Shoulder, Elbow,  Wrist,   Hip ,     Knee  , Ankle ,  Mean
 96.15  94.89     88.14  83.78   87.43   82.19   77.87   87.33
+```
+
+
+### Train an 8-stack hourglass model
+
+```bash
+$ python scripts/train_mpii.py \
+    --arch=hg8 \
+    --image-path=/path/to/mpii/images \
+    --checkpoint=checkpoint/hg8 \
+    --epochs=220 \
+    --train-batch=6 \
+    --test-batch=6 \
+    --lr=5e-4 \
+    --schedule 150 175 200
 ```

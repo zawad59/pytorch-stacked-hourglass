@@ -1,8 +1,8 @@
-from stacked_hourglass import HumanPosePredictor, hg2
 import pytest
 import torch
 from torch.testing import assert_allclose
 
+from stacked_hourglass import HumanPosePredictor, hg2
 
 ALL_DEVICES = ['cpu']
 # Add available GPU devices.
