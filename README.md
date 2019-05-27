@@ -37,32 +37,22 @@ print('Right elbow location: ', joints[MPII_JOINT_NAMES.index('right_elbow')])
 ```
 
 
-## Evaluation scripts
+## Examples
 
-(NOTE: this will be replaced eventually).
 
-Here's a quick example of evaluating the pretrained 2-stack hourglass model
-[from Google Drive](https://drive.google.com/drive/folders/0B63t5HSgY4SQTzNQWWplelF3eEk).
+### Evaluation on the MPII validation set
+
+Here's a quick example of evaluating the pretrained 2-stack hourglass model on the MPII Human
+Pose validation set.
 
 ```bash
-$ python example/main.py --dataset mpii \
-    --image-path /data/datasets/MPII_Human_Pose/images \
-    -a hg --stacks 2 --blocks 1 --checkpoint checkpoint/mpii/hg_s2_b1 \
-    --resume checkpoint/mpii/hg_s2_b1/model_best.pth.tar -e
+$ python example/evaluate_mpii.py --model=hg2 --image-path=/path/to/mpii/images
 ```
 
 Output:
 
 ```
-==> creating model 'hg', stacks=2, blocks=1
-=> loading checkpoint 'checkpoint/mpii/hg_s2_b1/model_best.pth.tar'
-=> loaded checkpoint 'checkpoint/mpii/hg_s2_b1/model_best.pth.tar' (epoch 185)
-    Total params: 6.73M
-
-Evaluation only
-Eval  |################################| (493/493) Data: 0.145060s | Batch: 0.399s | Total: 0:03:16 | ETA: 0:00:01 | Loss: 0.0002 | Acc:  0.8458
-
-PCKh scores following proper evaluation protocol:
+Final validation PCKh scores:
 Head,   Shoulder, Elbow,  Wrist,   Hip ,     Knee  , Ankle ,  Mean
 96.15  94.89     88.14  83.78   87.43   82.19   77.87   87.33
 ```

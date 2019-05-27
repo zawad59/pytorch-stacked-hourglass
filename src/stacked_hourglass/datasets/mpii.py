@@ -26,15 +26,16 @@ class Mpii(data.Dataset):
     RGB_MEAN = torch.as_tensor([0.4404, 0.4440, 0.4327])
     RGB_STDDEV = torch.as_tensor([0.2458, 0.2410, 0.2468])
 
-    def __init__(self, is_train = True, **kwargs):
-        self.img_folder = kwargs['image_path'] # root image folders
-        self.is_train   = is_train # training set or test set
-        self.inp_res    = kwargs['inp_res']
-        self.out_res    = kwargs['out_res']
-        self.sigma      = kwargs['sigma']
-        self.scale_factor = kwargs['scale_factor']
-        self.rot_factor = kwargs['rot_factor']
-        self.label_type = kwargs['label_type']
+    def __init__(self, image_path, is_train=True, inp_res=256, out_res=64, sigma=1,
+                 scale_factor=0.25, rot_factor=30, label_type='Gaussian', **kwargs):
+        self.img_folder = image_path # root image folders
+        self.is_train = is_train # training set or test set
+        self.inp_res = inp_res
+        self.out_res = out_res
+        self.sigma = sigma
+        self.scale_factor = scale_factor
+        self.rot_factor = rot_factor
+        self.label_type = label_type
 
         # create train/val split
 
@@ -176,7 +177,7 @@ def print_mpii_validation_accuracy(preds):
         0.5 * (PCKh[lkne] + PCKh[rkne]), 0.5 * (PCKh[lank] + PCKh[rank]), np.mean(PCKh)))
 
 
-def mpii(**kwargs):
-    return Mpii(**kwargs)
+def mpii(*args, **kwargs):
+    return Mpii(*args, **kwargs)
 
 mpii.njoints = len(MPII_JOINT_NAMES)  # ugly but works
