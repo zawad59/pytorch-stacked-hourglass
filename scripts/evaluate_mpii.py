@@ -7,7 +7,7 @@ from torch.nn import DataParallel
 from torch.utils.data import DataLoader
 
 from stacked_hourglass import hg1, hg2, hg8
-from stacked_hourglass.datasets.mpii import mpii, print_mpii_validation_accuracy
+from stacked_hourglass.datasets.mpii import Mpii, print_mpii_validation_accuracy
 from stacked_hourglass.train import do_validation_epoch
 
 
@@ -48,7 +48,7 @@ def main(args):
         model.load_state_dict(state_dict)
 
     # Initialise the MPII validation set dataloader.
-    val_dataset = mpii(args.image_path, is_train=False)
+    val_dataset = Mpii(args.image_path, is_train=False)
     val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False,
                             num_workers=args.workers, pin_memory=True)
 

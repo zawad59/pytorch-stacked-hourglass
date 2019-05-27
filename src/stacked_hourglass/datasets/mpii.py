@@ -28,7 +28,7 @@ class Mpii(data.Dataset):
     RGB_STDDEV = torch.as_tensor([0.2458, 0.2410, 0.2468])
 
     def __init__(self, image_path, is_train=True, inp_res=256, out_res=64, sigma=1,
-                 scale_factor=0.25, rot_factor=30, label_type='Gaussian', **kwargs):
+                 scale_factor=0.25, rot_factor=30, label_type='Gaussian'):
         self.img_folder = image_path # root image folders
         self.is_train = is_train # training set or test set
         self.inp_res = inp_res
@@ -40,8 +40,8 @@ class Mpii(data.Dataset):
 
         # create train/val split
 
-        with gzip.open(open_binary(stacked_hourglass.res, 'mpii_annotations.json.gz')) as anno_file:
-            self.anno = json.load(anno_file)
+        with gzip.open(open_binary(stacked_hourglass.res, 'mpii_annotations.json.gz')) as f:
+            self.anno = json.load(f)
 
         self.train_list, self.valid_list = [], []
         for idx, val in enumerate(self.anno):
@@ -177,7 +177,3 @@ def print_mpii_validation_accuracy(preds):
         0.5 * (PCKh[lwri] + PCKh[rwri]), 0.5 * (PCKh[lhip] + PCKh[rhip]),
         0.5 * (PCKh[lkne] + PCKh[rkne]), 0.5 * (PCKh[lank] + PCKh[rank]), np.mean(PCKh)]
     ], headers='firstrow', floatfmt='0.2f'))
-
-
-def mpii(*args, **kwargs):
-    return Mpii(*args, **kwargs)

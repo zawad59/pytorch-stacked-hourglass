@@ -6,7 +6,7 @@ from torch.optim import Adam
 from torch.utils.data import DataLoader
 
 from stacked_hourglass import hg1, hg2
-from stacked_hourglass.datasets.mpii import mpii
+from stacked_hourglass.datasets.mpii import Mpii
 from stacked_hourglass.train import do_training_step, do_validation_step, do_validation_epoch
 
 ALL_DEVICES = ['cpu']
@@ -50,7 +50,7 @@ def test_do_validation_epoch(mpii_image_dir):
     device = torch.device('cuda', torch.cuda.current_device())
     model = hg1(pretrained=True)
     model = model.to(device)
-    val_dataset = mpii(mpii_image_dir, is_train=False)
+    val_dataset = Mpii(mpii_image_dir, is_train=False)
     val_dataset.valid_list = val_dataset.valid_list[:32]
     val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False, num_workers=2,
                             pin_memory=True)
