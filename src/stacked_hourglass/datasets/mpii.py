@@ -181,5 +181,3 @@ def print_mpii_validation_accuracy(preds):
 
 def mpii(*args, **kwargs):
     return Mpii(*args, **kwargs)
-
-mpii.njoints = len(MPII_JOINT_NAMES)  # ugly but works

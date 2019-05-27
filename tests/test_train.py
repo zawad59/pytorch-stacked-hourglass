@@ -44,8 +44,10 @@ def test_do_validation_step(device):
 def test_do_validation_epoch(mpii_image_dir):
     if not os.path.isdir(mpii_image_dir):
         pytest.skip('cannot find MPII image dir')
+    if not torch.cuda.is_available():
+        pytest.skip('requires CUDA device')
 
-    device = torch.device('cuda:0')
+    device = torch.device('cuda', torch.cuda.current_device())
     model = hg1(pretrained=True)
     model = model.to(device)
     val_dataset = mpii(mpii_image_dir, is_train=False)
