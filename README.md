@@ -53,8 +53,10 @@ Output:
 
 ```
 Final validation PCKh scores:
-Head,   Shoulder, Elbow,  Wrist,   Hip ,     Knee  , Ankle ,  Mean
-96.15  94.89     88.14  83.78   87.43   82.19   77.87   87.33
+
+  Head    Shoulder    Elbow    Wrist    Hip    Knee    Ankle    Mean
+------  ----------  -------  -------  -----  ------  -------  ------
+ 96.15       94.89    88.14    83.78  87.43   82.19    77.87   87.33
 ```
 
 

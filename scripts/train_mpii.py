@@ -8,7 +8,7 @@ from torch.optim.rmsprop import RMSprop
 from torch.utils.data import DataLoader
 
 from stacked_hourglass import hg1, hg2, hg8
-from stacked_hourglass.datasets import mpii
+from stacked_hourglass.datasets.mpii import mpii
 from stacked_hourglass.train import do_training_epoch, do_validation_epoch
 from stacked_hourglass.utils.logger import Logger, savefig
 from stacked_hourglass.utils.misc import save_checkpoint, adjust_learning_rate

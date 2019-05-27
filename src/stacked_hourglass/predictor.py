@@ -1,14 +1,13 @@
 import torch
 
 from stacked_hourglass.datasets.mpii import Mpii
-from stacked_hourglass.models.hourglass import HourglassNet
 from stacked_hourglass.utils.evaluation import final_preds_untransformed
 from stacked_hourglass.utils.imutils import resize
 from stacked_hourglass.utils.transforms import color_normalize, fliplr, flip_back
 
 
 class HumanPosePredictor:
-    def __init__(self, model: HourglassNet, device=None):
+    def __init__(self, model, device=None):
         if device is None:
             device = 'cuda' if torch.cuda.is_available() else 'cpu'
         device = torch.device(device)

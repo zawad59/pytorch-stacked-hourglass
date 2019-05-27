@@ -1,5 +1,4 @@
 # For main code
-easydict==1.9
 importlib_resources==1.0.2
 matplotlib==3.1.0
 scipy==1.1.0

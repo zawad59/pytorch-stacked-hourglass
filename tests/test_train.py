@@ -1,9 +1,13 @@
+import os.path
+
 import pytest
 import torch
-
-from stacked_hourglass import hg2
-from stacked_hourglass.train import do_training_step, do_validation_step
 from torch.optim import Adam
+from torch.utils.data import DataLoader
+
+from stacked_hourglass import hg1, hg2
+from stacked_hourglass.datasets.mpii import mpii
+from stacked_hourglass.train import do_training_step, do_validation_step, do_validation_epoch
 
 ALL_DEVICES = ['cpu']
 # Add available GPU devices.
@@ -35,3 +39,19 @@ def test_do_validation_step(device):
     output, loss = do_validation_step(model, inp, target)
     assert output.shape == (1, 16, 64, 64)
     assert loss > 0
+
+
+def test_do_validation_epoch(mpii_image_dir):
+    if not os.path.isdir(mpii_image_dir):
+        pytest.skip('cannot find MPII image dir')
+
+    device = torch.device('cuda:0')
+    model = hg1(pretrained=True)
+    model = model.to(device)
+    val_dataset = mpii(mpii_image_dir, is_train=False)
+    val_dataset.valid_list = val_dataset.valid_list[:32]
+    val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False, num_workers=2,
+                            pin_memory=True)
+    avg_loss, avg_acc, predictions = do_validation_epoch(val_loader, model, device, flip=False)
+    assert avg_loss == pytest.approx(0.00014652813479187898, abs=1e-6)
+    assert avg_acc == pytest.approx(0.8879464417695999, abs=1e-6)

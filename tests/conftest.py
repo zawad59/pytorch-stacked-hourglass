@@ -10,6 +10,12 @@ DATA_DIR = Path(__file__).parent.joinpath('data')
 
 
 @pytest.fixture()
+def mpii_image_dir():
+    # TODO: Make the MPII image directory a configuration option somehow.
+    return '/data/datasets/MPII_Human_Pose/images'
+
+
+@pytest.fixture()
 def man_running_image():
     return load_image(str(DATA_DIR.joinpath('man_running.jpg')))
 

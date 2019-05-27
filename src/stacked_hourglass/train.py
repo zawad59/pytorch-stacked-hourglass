@@ -3,7 +3,7 @@ import torch.backends.cudnn
 import torch.nn.parallel
 from tqdm import tqdm
 
-from stacked_hourglass.losses import joints_mse_loss
+from stacked_hourglass.loss import joints_mse_loss
 from stacked_hourglass.utils.evaluation import accuracy, AverageMeter, final_preds
 from stacked_hourglass.utils.transforms import fliplr, flip_back
 
