@@ -1,3 +1,4 @@
+from os import environ
 from pathlib import Path
 
 import pytest
@@ -11,8 +12,7 @@ DATA_DIR = Path(__file__).parent.joinpath('data')
 
 @pytest.fixture()
 def mpii_image_dir():
-    # TODO: Make the MPII image directory a configuration option somehow.
-    return '/data/datasets/MPII_Human_Pose/images'
+    return environ.get('MPII_IMAGE_DIR') or '/data/datasets/MPII_Human_Pose/images'
 
 
 @pytest.fixture()
