@@ -85,6 +85,8 @@ def final_preds_untransformed(output, res):
     if coords.dim() < 3:
         coords = coords.unsqueeze(0)
 
+    coords -= 1  # Convert from 1-based to 0-based coordinates
+
     return coords
 
 def final_preds(output, center, scale, res):
