@@ -23,10 +23,11 @@ class HumanPosePredictor:
 
     def prepare_image(self, image):
         was_fixed_point = not image.is_floating_point()
-        image = image.to(device='cpu', dtype=torch.float32)
+        image = torch.tensor(image, device='cpu', dtype=torch.float32)
         if was_fixed_point:
-            image = image.div_(255.0)
-        image = resize(image, 256, 256)
+            image /= 255.0
+        if image.shape[-2:] != (256, 256):
+            image = resize(image, 256, 256)
         image = color_normalize(image, Mpii.RGB_MEAN, Mpii.RGB_STDDEV)
         return image
 
