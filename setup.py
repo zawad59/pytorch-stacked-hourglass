@@ -11,7 +11,7 @@ setup(
     include_package_data=True,
     install_requires=[
         'importlib_resources',
-        'scipy',
+        'scipy<1.2.0',
         'tabulate',
         'torch',
     ],
