@@ -57,3 +57,14 @@ def test_estimate_joints_with_flip(device, man_running_image, man_running_pose):
     joints = predictor.estimate_joints(man_running_image, flip=True)
     assert joints.shape == (16, 2)
     assert_allclose(joints, man_running_pose, rtol=0, atol=20)
+
+
+@pytest.mark.parametrize('device', ALL_DEVICES)
+def test_estimate_joints_h36m(device, h36m_image, h36m_pose):
+    device = torch.device(device)
+    model = hg2(pretrained=True)
+    predictor = HumanPosePredictor(model, device=device)
+    joints = predictor.estimate_joints(h36m_image)
+    assert joints.shape == (16, 2)
+    print(joints, h36m_pose)
+    assert_allclose(joints, h36m_pose, rtol=0, atol=15)

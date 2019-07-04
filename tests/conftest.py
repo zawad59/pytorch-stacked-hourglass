@@ -52,3 +52,30 @@ def example_input(man_running_image):
     image = resize(man_running_image, 256, 256)
     image = color_normalize(image, mean, std)
     return image.unsqueeze(0)
+
+
+@pytest.fixture()
+def h36m_image():
+    return load_image(str(DATA_DIR.joinpath('h36m.png')))
+
+
+@pytest.fixture()
+def h36m_pose():
+    return torch.as_tensor([
+        [145, 194],  # right_ankle
+        [134, 156],  # right_knee
+        [142, 120],  # right_hip
+        [121, 117],  # left_hip
+        [124, 158],  # left_knee
+        [129, 199],  # left_ankle
+        [132, 118],  # pelvis
+        [135,  81],  # spine
+        [134,  76],  # neck
+        [136,  56],  # head_top
+        [149, 125],  # right_wrist
+        [151, 106],  # right_elbow
+        [146,  83],  # right_shoulder
+        [123,  84],  # left_shoulder
+        [113, 107],  # left_elbow
+        [106, 123],  # left_wrist
+    ], dtype=torch.float32)
