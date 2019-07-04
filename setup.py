@@ -9,6 +9,12 @@ setup(
     packages=find_packages('src'),
     package_dir={'': 'src'},
     include_package_data=True,
+    install_requires=[
+        'importlib_resources',
+        'scipy',
+        'tabulate',
+        'torch',
+    ],
     classifiers=[
         'Topic :: Scientific/Engineering :: Image Recognition',
         'Intended Audience :: Science/Research',
