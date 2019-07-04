@@ -1,5 +1,3 @@
-import os.path
-
 import pytest
 import torch
 from torch.optim import Adam
@@ -42,8 +40,6 @@ def test_do_validation_step(device):
 
 
 def test_do_validation_epoch(mpii_image_dir):
-    if not os.path.isdir(mpii_image_dir):
-        pytest.skip('cannot find MPII image dir')
     if not torch.cuda.is_available():
         pytest.skip('requires CUDA device')
 

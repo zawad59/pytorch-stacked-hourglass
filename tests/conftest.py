@@ -1,4 +1,4 @@
-from os import environ
+import os
 from pathlib import Path
 
 import pytest
@@ -12,7 +12,10 @@ DATA_DIR = Path(__file__).parent.joinpath('data')
 
 @pytest.fixture()
 def mpii_image_dir():
-    return environ.get('MPII_IMAGE_DIR') or '/data/datasets/MPII_Human_Pose/images'
+    image_dir = os.environ.get('MPII_IMAGE_DIR') or '/data/datasets/MPII_Human_Pose/images'
+    if not os.path.isdir(image_dir):
+        pytest.skip('cannot find MPII image dir')
+    return image_dir
 
 
 @pytest.fixture()
