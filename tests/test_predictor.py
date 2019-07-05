@@ -25,7 +25,23 @@ def test_prepare_image(device, man_running_image):
     device = torch.device(device)
     model = hg2(pretrained=True)
     predictor = HumanPosePredictor(model, device=device)
-    image = predictor.prepare_image(man_running_image)
+    orig_image = man_running_image.clone()
+    image = predictor.prepare_image(orig_image)
+    assert_allclose(orig_image, man_running_image)  # Input image should be unchanged.
+    assert image.shape == (3, 256, 256)
+    assert image.device.type == 'cpu'
+
+
+@pytest.mark.parametrize('device', ALL_DEVICES)
+def test_prepare_image_mostly_ready(device):
+    # This test is for preparing an image which already has the correct dtype and size.
+    device = torch.device(device)
+    image_float32 = torch.empty((3, 256, 256), device=device, dtype=torch.float32).uniform_()
+    model = hg2(pretrained=True)
+    predictor = HumanPosePredictor(model, device=device)
+    orig_image = image_float32.clone()
+    image = predictor.prepare_image(orig_image)
+    assert_allclose(image_float32, orig_image)  # Input image should be unchanged.
     assert image.shape == (3, 256, 256)
     assert image.device.type == 'cpu'
 

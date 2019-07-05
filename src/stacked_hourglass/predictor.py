@@ -23,7 +23,7 @@ class HumanPosePredictor:
 
     def prepare_image(self, image):
         was_fixed_point = not image.is_floating_point()
-        image = torch.tensor(image, device='cpu', dtype=torch.float32)
+        image = torch.empty(image.shape, device='cpu', dtype=torch.float32).copy_(image)
         if was_fixed_point:
             image /= 255.0
         if image.shape[-2:] != (256, 256):
