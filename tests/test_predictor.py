@@ -82,5 +82,4 @@ def test_estimate_joints_h36m(device, h36m_image, h36m_pose):
     predictor = HumanPosePredictor(model, device=device)
     joints = predictor.estimate_joints(h36m_image)
     assert joints.shape == (16, 2)
-    print(joints, h36m_pose)
     assert_allclose(joints, h36m_pose, rtol=0, atol=15)
