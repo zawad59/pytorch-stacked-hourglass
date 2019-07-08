@@ -6,6 +6,14 @@ from stacked_hourglass.utils.imutils import resize
 from stacked_hourglass.utils.transforms import color_normalize, fliplr, flip_back
 
 
+def _check_batched(images):
+    if isinstance(images, (tuple, list)):
+        return True
+    if images.ndimension() == 4:
+        return True
+    return False
+
+
 class HumanPosePredictor:
     def __init__(self, model, device=None):
         if device is None:
@@ -32,13 +40,12 @@ class HumanPosePredictor:
         return image
 
     def estimate_heatmaps(self, images, flip=False):
-        is_multiple = isinstance(images, (tuple, list))
-        raw_images = images if is_multiple else [images]
-        input_images = [self.prepare_image(image) for image in raw_images]
-        input_tensor = torch.empty((len(input_images), 3, 256, 256),
+        is_batched = _check_batched(images)
+        raw_images = images if is_batched else images.unsqueeze(0)
+        input_tensor = torch.empty((len(raw_images), 3, 256, 256),
                                    device=self.device, dtype=torch.float32)
-        for i, input_image in enumerate(input_images):
-            input_tensor[i] = input_image
+        for i, raw_image in enumerate(raw_images):
+            input_tensor[i] = self.prepare_image(raw_image)
         heatmaps = self.do_forward(input_tensor)[-1].cpu()
         if flip:
             flip_input = fliplr(input_tensor.cpu().clone().numpy())
@@ -46,7 +53,7 @@ class HumanPosePredictor:
             flip_heatmaps = self.do_forward(flip_input)[-1].cpu()
             heatmaps += flip_back(flip_heatmaps)
             heatmaps /= 2
-        if is_multiple:
+        if is_batched:
             return heatmaps
         else:
             return heatmaps[0]
@@ -65,15 +72,15 @@ class HumanPosePredictor:
         Returns:
             The predicted human joint locations.
         """
-        is_multiple = isinstance(images, (tuple, list))
-        raw_images = images if is_multiple else [images]
+        is_batched = _check_batched(images)
+        raw_images = images if is_batched else images.unsqueeze(0)
         heatmaps = self.estimate_heatmaps(raw_images, flip=flip).cpu()
         coords = final_preds_untransformed(heatmaps, (64, 64))
         # Rescale coords to pixel space of specified images.
         for i, image in enumerate(raw_images):
             coords[i, :, 0] *= image.shape[-1] / 64
             coords[i, :, 1] *= image.shape[-2] / 64
-        if is_multiple:
+        if is_batched:
             return coords
         else:
             return coords[0]
