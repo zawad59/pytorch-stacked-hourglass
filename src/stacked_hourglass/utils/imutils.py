@@ -1,7 +1,7 @@
 import numpy as np
-import scipy.misc
 
 from .misc import to_numpy, to_torch
+from .pilutil import imread, imresize
 
 
 def im_to_numpy(img):
@@ -18,14 +18,11 @@ def im_to_torch(img):
 
 def load_image(img_path):
     # H x W x C => C x H x W
-    return im_to_torch(scipy.misc.imread(img_path, mode='RGB'))
+    return im_to_torch(imread(img_path, mode='RGB'))
 
 def resize(img, owidth, oheight):
     img = im_to_numpy(img)
-    img = scipy.misc.imresize(
-            img,
-            (oheight, owidth)
-        )
+    img = imresize(img, (oheight, owidth))
     img = im_to_torch(img)
     return img
 

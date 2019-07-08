@@ -1,9 +1,9 @@
 import numpy as np
-import scipy.misc
 import torch
 
 from .imutils import im_to_numpy, im_to_torch
 from .misc import to_torch
+from .pilutil import imresize, imrotate
 
 
 def color_normalize(x, mean, std):
@@ -25,7 +25,7 @@ def flip_back(flip_output, dataset='mpii'):
             [10,15], [11,14], [12,13]
         )
     else:
-        print('Not supported dataset: ' + dataset)
+        raise ValueError('Not supported dataset: ' + dataset)
 
     # flip output horizontally
     flip_output = fliplr(flip_output.numpy())
@@ -49,7 +49,7 @@ def shufflelr(x, width, dataset='mpii'):
             [10,15], [11,14], [12,13]
         )
     else:
-        print('Not supported dataset: ' + dataset)
+        raise ValueError('Not supported dataset: ' + dataset)
 
     # Flip horizontal
     x[:, 0] = width - x[:, 0]
@@ -137,7 +137,7 @@ def crop(img, center, scale, res, rot=0):
             return torch.zeros(res[0], res[1], img.shape[2]) \
                         if len(img.shape) > 2 else torch.zeros(res[0], res[1])
         else:
-            img = scipy.misc.imresize(img, [new_ht, new_wd])
+            img = imresize(img, [new_ht, new_wd])
             center = center * 1.0 / sf
             scale = scale / sf
 
@@ -167,8 +167,8 @@ def crop(img, center, scale, res, rot=0):
 
     if not rot == 0:
         # Remove padding
-        new_img = scipy.misc.imrotate(new_img, rot)
+        new_img = imrotate(new_img, rot)
         new_img = new_img[pad:-pad, pad:-pad]
 
-    new_img = im_to_torch(scipy.misc.imresize(new_img, res))
+    new_img = im_to_torch(imresize(new_img, res))
     return new_img
