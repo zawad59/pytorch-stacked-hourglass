@@ -1,17 +1,9 @@
-import pytest
 import torch
+from stacked_hourglass import HumanPosePredictor, hg2
 from torch.testing import assert_allclose
 
-from stacked_hourglass import HumanPosePredictor, hg2
 
-ALL_DEVICES = ['cpu']
-# Add available GPU devices.
-ALL_DEVICES.extend(f'cuda:{i}' for i in range(torch.cuda.device_count()))
-
-
-@pytest.mark.parametrize('device', ALL_DEVICES)
 def test_do_forward(device, example_input):
-    device = torch.device(device)
     model = hg2(pretrained=True)
     predictor = HumanPosePredictor(model, device=device)
     output = predictor.do_forward(example_input.to(device))
@@ -20,9 +12,7 @@ def test_do_forward(device, example_input):
     assert heatmaps.shape == (1, 16, 64, 64)
 
 
-@pytest.mark.parametrize('device', ALL_DEVICES)
 def test_prepare_image(device, man_running_image):
-    device = torch.device(device)
     model = hg2(pretrained=True)
     predictor = HumanPosePredictor(model, device=device)
     orig_image = man_running_image.clone()
@@ -32,10 +22,8 @@ def test_prepare_image(device, man_running_image):
     assert image.device.type == 'cpu'
 
 
-@pytest.mark.parametrize('device', ALL_DEVICES)
 def test_prepare_image_mostly_ready(device):
     # This test is for preparing an image which already has the correct dtype and size.
-    device = torch.device(device)
     image_float32 = torch.empty((3, 256, 256), device=device, dtype=torch.float32).uniform_()
     model = hg2(pretrained=True)
     predictor = HumanPosePredictor(model, device=device)
@@ -46,18 +34,14 @@ def test_prepare_image_mostly_ready(device):
     assert image.device.type == 'cpu'
 
 
-@pytest.mark.parametrize('device', ALL_DEVICES)
 def test_estimate_heatmaps(device, man_running_image):
-    device = torch.device(device)
     model = hg2(pretrained=True)
     predictor = HumanPosePredictor(model, device=device)
     heatmaps = predictor.estimate_heatmaps(man_running_image)
     assert heatmaps.shape == (16, 64, 64)
 
 
-@pytest.mark.parametrize('device', ALL_DEVICES)
 def test_estimate_joints(device, man_running_image, man_running_pose):
-    device = torch.device(device)
     model = hg2(pretrained=True)
     predictor = HumanPosePredictor(model, device=device)
     joints = predictor.estimate_joints(man_running_image)
@@ -65,9 +49,7 @@ def test_estimate_joints(device, man_running_image, man_running_pose):
     assert_allclose(joints, man_running_pose, rtol=0, atol=20)
 
 
-@pytest.mark.parametrize('device', ALL_DEVICES)
 def test_estimate_joints_with_flip(device, man_running_image, man_running_pose):
-    device = torch.device(device)
     model = hg2(pretrained=True)
     predictor = HumanPosePredictor(model, device=device)
     joints = predictor.estimate_joints(man_running_image, flip=True)
@@ -75,9 +57,7 @@ def test_estimate_joints_with_flip(device, man_running_image, man_running_pose):
     assert_allclose(joints, man_running_pose, rtol=0, atol=20)
 
 
-@pytest.mark.parametrize('device', ALL_DEVICES)
 def test_estimate_joints_h36m(device, h36m_image, h36m_pose):
-    device = torch.device(device)
     model = hg2(pretrained=True)
     predictor = HumanPosePredictor(model, device=device)
     joints = predictor.estimate_joints(h36m_image)
@@ -85,9 +65,7 @@ def test_estimate_joints_h36m(device, h36m_image, h36m_pose):
     assert_allclose(joints, h36m_pose, rtol=0, atol=15)
 
 
-@pytest.mark.parametrize('device', ALL_DEVICES)
 def test_estimate_joints_tensor_batch(device, h36m_image, h36m_pose):
-    device = torch.device(device)
     model = hg2(pretrained=True)
     predictor = HumanPosePredictor(model, device=device)
     batch_size = 4

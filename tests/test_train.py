@@ -1,20 +1,13 @@
 import pytest
 import torch
-from torch.optim import Adam
-from torch.utils.data import DataLoader
-
 from stacked_hourglass import hg1, hg2
 from stacked_hourglass.datasets.mpii import Mpii
 from stacked_hourglass.train import do_training_step, do_validation_step, do_validation_epoch
-
-ALL_DEVICES = ['cpu']
-# Add available GPU devices.
-ALL_DEVICES.extend(f'cuda:{i}' for i in range(torch.cuda.device_count()))
+from torch.optim import Adam
+from torch.utils.data import DataLoader
 
 
-@pytest.mark.parametrize('device', ALL_DEVICES)
 def test_do_training_step(device):
-    device = torch.device(device)
     model = hg2(pretrained=False)
     model = model.to(device)
     model.train()
@@ -26,9 +19,7 @@ def test_do_training_step(device):
     assert loss > 0
 
 
-@pytest.mark.parametrize('device', ALL_DEVICES)
 def test_do_validation_step(device):
-    device = torch.device(device)
     model = hg2(pretrained=False)
     model = model.to(device)
     model.eval()

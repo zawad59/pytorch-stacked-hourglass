@@ -7,10 +7,22 @@ import torch
 from stacked_hourglass.utils.imutils import load_image, resize
 from stacked_hourglass.utils.transforms import color_normalize
 
-DATA_DIR = Path(__file__).parent.joinpath('data')
+ALL_DEVICES = ['cpu']
+# Add available GPU devices.
+ALL_DEVICES.extend(f'cuda:{i}' for i in range(torch.cuda.device_count()))
 
 
-@pytest.fixture()
+@pytest.fixture(params=ALL_DEVICES)
+def device(request):
+    return torch.device(request.param)
+
+
+@pytest.fixture
+def data_dir():
+    return Path(__file__).parent.joinpath('data')
+
+
+@pytest.fixture
 def mpii_image_dir():
     image_dir = os.environ.get('MPII_IMAGE_DIR') or '/data/datasets/MPII_Human_Pose/images'
     if not os.path.isdir(image_dir):
@@ -18,12 +30,12 @@ def mpii_image_dir():
     return image_dir
 
 
-@pytest.fixture()
-def man_running_image():
-    return load_image(str(DATA_DIR.joinpath('man_running.jpg')))
+@pytest.fixture
+def man_running_image(data_dir):
+    return load_image(str(data_dir.joinpath('man_running.jpg')))
 
 
-@pytest.fixture()
+@pytest.fixture
 def man_running_pose():
     return torch.as_tensor([
         [215, 449],  # right_ankle
@@ -45,7 +57,7 @@ def man_running_pose():
     ], dtype=torch.float32)
 
 
-@pytest.fixture()
+@pytest.fixture
 def example_input(man_running_image):
     mean = torch.as_tensor([0.4404, 0.4440, 0.4327])
     std = torch.as_tensor([0.2458, 0.2410, 0.2468])
@@ -54,12 +66,12 @@ def example_input(man_running_image):
     return image.unsqueeze(0)
 
 
-@pytest.fixture()
-def h36m_image():
-    return load_image(str(DATA_DIR.joinpath('h36m.png')))
+@pytest.fixture
+def h36m_image(data_dir):
+    return load_image(str(data_dir.joinpath('h36m.png')))
 
 
-@pytest.fixture()
+@pytest.fixture
 def h36m_pose():
     return torch.as_tensor([
         [145, 194],  # right_ankle
