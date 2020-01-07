@@ -35,7 +35,7 @@ def main(args):
     elif args.arch == 'hg8':
         model = hg8(pretrained=False)
     else:
-        raise Exception('unrecognised model architecture: ' + args.model)
+        raise Exception('unrecognised model architecture: ' + args.arch)
 
     model = DataParallel(model).to(device)
 
@@ -116,7 +116,7 @@ if __name__ == '__main__':
                         help='path to images')
 
     # Model structure
-    parser.add_argument('--arch', '-a', metavar='ARCH', default='hg',
+    parser.add_argument('--arch', '-a', metavar='ARCH', default='hg8',
                         choices=['hg1', 'hg2', 'hg8'],
                         help='model architecture')
     # Training strategy
