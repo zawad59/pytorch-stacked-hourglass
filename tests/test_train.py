@@ -66,3 +66,4 @@ def test_do_validation_epoch(cuda_device, mpii_image_dir):
                                                          acc_joints=Mpii.ACC_JOINTS)
     assert avg_loss == pytest.approx(0.00014652813479187898, abs=1e-6)
     assert avg_acc == pytest.approx(0.8879464417695999, abs=1e-6)
+    assert predictions.shape == (32, 16, 2)

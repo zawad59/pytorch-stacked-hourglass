@@ -88,7 +88,7 @@ def do_validation_step(model, input, target, target_weight=None, flip=False):
 def do_validation_epoch(val_loader, model, device, flip=False, quiet=False, acc_joints=None):
     losses = AverageMeter()
     accuracies = AverageMeter()
-    predictions = torch.zeros(len(val_loader.dataset), 16, 2)
+    predictions = [None] * len(val_loader.dataset)
 
     # Put the model in evaluation mode.
     model.eval()
@@ -125,5 +125,7 @@ def do_validation_epoch(val_loader, model, device, flip=False, quiet=False, acc_
                 loss=losses.avg,
                 acc=accuracies.avg
             ))
+
+    predictions = torch.stack(predictions, dim=0)
 
     return losses.avg, accuracies.avg, predictions
