@@ -69,11 +69,11 @@ def do_validation_step(model, input, target, target_weight=None, flip=False):
     if flip:
         # If `flip` is true, perform horizontally flipped inference as well. This should
         # result in more robust predictions at the expense of additional compute.
-        flip_input = fliplr(input.clone().cpu().numpy())
-        flip_input = torch.as_tensor(flip_input, dtype=torch.float32, device=device)
+        flip_input = fliplr(input.detach().clone().cpu().numpy())
+        flip_input = torch.as_tensor(flip_input, dtype=input.dtype, device=input.device)
         flip_output = model(flip_input)
         flip_output = flip_output[-1].cpu()
-        flip_output = flip_back(flip_output)
+        flip_output = flip_back(flip_output.detach())
         heatmaps = (output[-1].cpu() + flip_output) / 2
     else:
         heatmaps = output[-1].cpu()
