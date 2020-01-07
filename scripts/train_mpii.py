@@ -83,10 +83,12 @@ def main(args):
         print('\nEpoch: %d | LR: %.8f' % (epoch + 1, lr))
 
         # train for one epoch
-        train_loss, train_acc = do_training_epoch(train_loader, model, device, optimizer)
+        train_loss, train_acc = do_training_epoch(train_loader, model, device, optimizer,
+                                                  acc_joints=Mpii.ACC_JOINTS)
 
         # evaluate on validation set
-        valid_loss, valid_acc, predictions = do_validation_epoch(val_loader, model, device, False)
+        valid_loss, valid_acc, predictions = do_validation_epoch(val_loader, model, device, False,
+                                                                 acc_joints=Mpii.ACC_JOINTS)
 
         # append logger file
         logger.append([epoch + 1, lr, train_loss, valid_loss, train_acc, valid_acc])

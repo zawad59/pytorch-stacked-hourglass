@@ -27,6 +27,9 @@ class Mpii(data.Dataset):
     RGB_MEAN = torch.as_tensor([0.4404, 0.4440, 0.4327])
     RGB_STDDEV = torch.as_tensor([0.2458, 0.2410, 0.2468])
 
+    # Suggested joints to use for average PCK calculations.
+    ACC_JOINTS = [1, 2, 3, 4, 5, 6, 11, 12, 15, 16]
+
     def __init__(self, image_path, is_train=True, inp_res=256, out_res=64, sigma=1,
                  scale_factor=0.25, rot_factor=30, label_type='Gaussian'):
         self.img_folder = image_path # root image folders
