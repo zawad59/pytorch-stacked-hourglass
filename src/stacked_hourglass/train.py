@@ -35,7 +35,7 @@ def do_training_epoch(train_loader, model, device, optimiser, quiet=False, acc_j
     iterable = enumerate(train_loader)
     progress = None
     if not quiet:
-        progress = tqdm(iterable, total=len(train_loader), ascii=True, leave=True)
+        progress = tqdm(iterable, desc='Train', total=len(train_loader), ascii=True, leave=False)
         iterable = progress
 
     for i, (input, target, meta) in iterable:
@@ -52,9 +52,9 @@ def do_training_epoch(train_loader, model, device, optimiser, quiet=False, acc_j
 
         # Show accuracy and loss as part of the progress bar.
         if progress is not None:
-            progress.set_postfix_str('Loss: {loss:0.4f}, Acc: {acc:0.4f}'.format(
+            progress.set_postfix_str('Loss: {loss:0.4f}, Acc: {acc:6.2f}'.format(
                 loss=losses.avg,
-                acc=accuracies.avg
+                acc=100 * accuracies.avg
             ))
 
     return losses.avg, accuracies.avg
@@ -96,7 +96,7 @@ def do_validation_epoch(val_loader, model, device, flip=False, quiet=False, acc_
     iterable = enumerate(val_loader)
     progress = None
     if not quiet:
-        progress = tqdm(iterable, total=len(val_loader), ascii=True, leave=True)
+        progress = tqdm(iterable, desc='Valid', total=len(val_loader), ascii=True, leave=False)
         iterable = progress
 
     for i, (input, target, meta) in iterable:
@@ -121,9 +121,9 @@ def do_validation_epoch(val_loader, model, device, flip=False, quiet=False, acc_
 
         # Show accuracy and loss as part of the progress bar.
         if progress is not None:
-            progress.set_postfix_str('Loss: {loss:0.4f}, Acc: {acc:0.4f}'.format(
+            progress.set_postfix_str('Loss: {loss:0.4f}, Acc: {acc:6.2f}'.format(
                 loss=losses.avg,
-                acc=accuracies.avg
+                acc=100 * accuracies.avg
             ))
 
     predictions = torch.stack(predictions, dim=0)

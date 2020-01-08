@@ -6,6 +6,7 @@ import torch.backends.cudnn
 from torch.nn import DataParallel
 from torch.optim.rmsprop import RMSprop
 from torch.utils.data import DataLoader
+from tqdm import trange, tqdm
 
 from stacked_hourglass import hg1, hg2, hg8
 from stacked_hourglass.datasets.mpii import Mpii
@@ -78,9 +79,8 @@ def main(args):
 
     # train and eval
     lr = args.lr
-    for epoch in range(args.start_epoch, args.epochs):
+    for epoch in trange(args.start_epoch, args.epochs, desc='Overall', ascii=True):
         lr = adjust_learning_rate(optimizer, epoch, lr, args.schedule, args.gamma)
-        print('\nEpoch: %d | LR: %.8f' % (epoch + 1, lr))
 
         # train for one epoch
         train_loss, train_acc = do_training_epoch(train_loader, model, device, optimizer,
@@ -89,6 +89,11 @@ def main(args):
         # evaluate on validation set
         valid_loss, valid_acc, predictions = do_validation_epoch(val_loader, model, device, False,
                                                                  acc_joints=Mpii.ACC_JOINTS)
+
+        # print metrics
+        tqdm.write(f'[{epoch + 1:3d}/{args.epochs:3d}] lr={lr:0.2e} '
+                   f'train_loss={train_loss:0.4f} train_acc={100 * train_acc:0.2f} '
+                   f'valid_loss={valid_loss:0.4f} valid_acc={100 * valid_acc:0.2f}')
 
         # append logger file
         logger.append([epoch + 1, lr, train_loss, valid_loss, train_acc, valid_acc])
