@@ -11,7 +11,7 @@ from tqdm import trange, tqdm
 from stacked_hourglass import hg1, hg2, hg8
 from stacked_hourglass.datasets.mpii import Mpii
 from stacked_hourglass.train import do_training_epoch, do_validation_epoch
-from stacked_hourglass.utils.logger import Logger, savefig
+from stacked_hourglass.utils.logger import Logger
 from stacked_hourglass.utils.misc import save_checkpoint, adjust_learning_rate
 
 
@@ -46,7 +46,6 @@ def main(args):
     best_acc = 0
 
     # optionally resume from a checkpoint
-    title = 'mpii ' + args.arch
     if args.resume:
         assert os.path.isfile(args.resume)
         print("=> loading checkpoint '{}'".format(args.resume))
@@ -57,9 +56,9 @@ def main(args):
         optimizer.load_state_dict(checkpoint['optimizer'])
         print("=> loaded checkpoint '{}' (epoch {})"
               .format(args.resume, checkpoint['epoch']))
-        logger = Logger(os.path.join(args.checkpoint, 'log.txt'), title=title, resume=True)
+        logger = Logger(os.path.join(args.checkpoint, 'log.txt'), resume=True)
     else:
-        logger = Logger(os.path.join(args.checkpoint, 'log.txt'), title=title)
+        logger = Logger(os.path.join(args.checkpoint, 'log.txt'))
         logger.set_names(['Epoch', 'LR', 'Train Loss', 'Val Loss', 'Train Acc', 'Val Acc'])
 
     # create data loader
@@ -97,6 +96,7 @@ def main(args):
 
         # append logger file
         logger.append([epoch + 1, lr, train_loss, valid_loss, train_acc, valid_acc])
+        logger.plot_to_file(os.path.join(args.checkpoint, 'log.svg'), ['Train Acc', 'Val Acc'])
 
         # remember best acc and save checkpoint
         is_best = valid_acc > best_acc
@@ -110,8 +110,6 @@ def main(args):
         }, predictions, is_best, checkpoint=args.checkpoint, snapshot=args.snapshot)
 
     logger.close()
-    logger.plot(['Train Acc', 'Val Acc'])
-    savefig(os.path.join(args.checkpoint, 'log.eps'))
 
 
 if __name__ == '__main__':
