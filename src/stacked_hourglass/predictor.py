@@ -15,13 +15,18 @@ def _check_batched(images):
 
 
 class HumanPosePredictor:
-    def __init__(self, model, device=None):
+    def __init__(self, model, device=None, data_info=None):
         if device is None:
             device = 'cuda' if torch.cuda.is_available() else 'cpu'
         device = torch.device(device)
         model.to(device)
         self.model = model
         self.device = device
+
+        if data_info is None:
+            self.data_info = Mpii.DATA_INFO
+        else:
+            self.data_info = data_info
 
     def do_forward(self, input_tensor):
         self.model.eval()
@@ -36,7 +41,7 @@ class HumanPosePredictor:
             image /= 255.0
         if image.shape[-2:] != (256, 256):
             image = resize(image, 256, 256)
-        image = color_normalize(image, Mpii.RGB_MEAN, Mpii.RGB_STDDEV)
+        image = color_normalize(image, self.data_info.rgb_mean, self.data_info.rgb_stddev)
         return image
 
     def estimate_heatmaps(self, images, flip=False):
@@ -48,10 +53,9 @@ class HumanPosePredictor:
             input_tensor[i] = self.prepare_image(raw_image)
         heatmaps = self.do_forward(input_tensor)[-1].cpu()
         if flip:
-            flip_input = fliplr(input_tensor.cpu().clone().numpy())
-            flip_input = torch.as_tensor(flip_input, device=self.device, dtype=torch.float32)
+            flip_input = fliplr(input_tensor)
             flip_heatmaps = self.do_forward(flip_input)[-1].cpu()
-            heatmaps += flip_back(flip_heatmaps)
+            heatmaps += flip_back(flip_heatmaps, self.data_info.hflip_indices)
             heatmaps /= 2
         if is_batched:
             return heatmaps

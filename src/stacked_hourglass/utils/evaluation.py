@@ -62,7 +62,7 @@ def accuracy(output, target, idxs=None, thr=0.5):
     cnt = 0
 
     for i in range(len(idxs)):
-        acc[i+1] = dist_acc(dists[idxs[i]-1], thr=thr)
+        acc[i+1] = dist_acc(dists[idxs[i]], thr=thr)
         if acc[i+1] >= 0:
             avg_acc = avg_acc + acc[i+1]
             cnt += 1

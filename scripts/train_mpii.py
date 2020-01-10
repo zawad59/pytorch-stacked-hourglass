@@ -82,11 +82,13 @@ def main(args):
         lr = adjust_learning_rate(optimizer, epoch, lr, args.schedule, args.gamma)
 
         # train for one epoch
-        train_loss, train_acc = do_training_epoch(train_loader, model, device, optimizer,
+        train_loss, train_acc = do_training_epoch(train_loader, model, device, Mpii.DATA_INFO,
+                                                  optimizer,
                                                   acc_joints=Mpii.ACC_JOINTS)
 
         # evaluate on validation set
-        valid_loss, valid_acc, predictions = do_validation_epoch(val_loader, model, device, False,
+        valid_loss, valid_acc, predictions = do_validation_epoch(val_loader, model, device,
+                                                                 Mpii.DATA_INFO, False,
                                                                  acc_joints=Mpii.ACC_JOINTS)
 
         # print metrics

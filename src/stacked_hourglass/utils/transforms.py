@@ -15,61 +15,26 @@ def color_normalize(x, mean, std):
     return x
 
 
-def flip_back(flip_output, dataset='mpii'):
-    """
-    flip output map
-    """
-    if dataset ==  'mpii':
-        matchedParts = (
-            [0,5],   [1,4],   [2,3],
-            [10,15], [11,14], [12,13]
-        )
-    else:
-        raise ValueError('Not supported dataset: ' + dataset)
-
-    # flip output horizontally
-    flip_output = fliplr(flip_output.numpy())
-
-    # Change left-right parts
-    for pair in matchedParts:
-        tmp = np.copy(flip_output[:, pair[0], :, :])
-        flip_output[:, pair[0], :, :] = flip_output[:, pair[1], :, :]
-        flip_output[:, pair[1], :, :] = tmp
-
-    return torch.from_numpy(flip_output).float()
+def flip_back(flip_output, hflip_indices):
+    """flip and rearrange output maps"""
+    return fliplr(flip_output)[:, hflip_indices]
 
 
-def shufflelr(x, width, dataset='mpii'):
-    """
-    flip coords
-    """
-    if dataset ==  'mpii':
-        matchedParts = (
-            [0,5],   [1,4],   [2,3],
-            [10,15], [11,14], [12,13]
-        )
-    else:
-        raise ValueError('Not supported dataset: ' + dataset)
-
+def shufflelr(x, width, hflip_indices):
+    """flip and rearrange coords"""
     # Flip horizontal
     x[:, 0] = width - x[:, 0]
-
     # Change left-right parts
-    for pair in matchedParts:
-        tmp = x[pair[0], :].clone()
-        x[pair[0], :] = x[pair[1], :]
-        x[pair[1], :] = tmp
-
+    x = x[hflip_indices]
     return x
 
 
 def fliplr(x):
-    if x.ndim == 3:
-        x = np.transpose(np.fliplr(np.transpose(x, (0, 2, 1))), (0, 2, 1))
-    elif x.ndim == 4:
-        for i in range(x.shape[0]):
-            x[i] = np.transpose(np.fliplr(np.transpose(x[i], (0, 2, 1))), (0, 2, 1))
-    return x.astype(float)
+    """Flip images horizontally."""
+    if torch.is_tensor(x):
+        return torch.flip(x, [-1])
+    else:
+        return np.ascontiguousarray(np.flip(x, -1))
 
 
 def get_transform(center, scale, res, rot=0):

@@ -8,7 +8,7 @@ from stacked_hourglass.utils.evaluation import accuracy, AverageMeter, final_pre
 from stacked_hourglass.utils.transforms import fliplr, flip_back
 
 
-def do_training_step(model, optimiser, input, target, target_weight=None):
+def do_training_step(model, optimiser, input, target, data_info, target_weight=None):
     assert model.training, 'model must be in training mode.'
     assert len(input) == len(target), 'input and target must contain the same number of examples.'
 
@@ -25,7 +25,7 @@ def do_training_step(model, optimiser, input, target, target_weight=None):
     return output[-1], loss.item()
 
 
-def do_training_epoch(train_loader, model, device, optimiser, quiet=False, acc_joints=None):
+def do_training_epoch(train_loader, model, device, data_info, optimiser, quiet=False, acc_joints=None):
     losses = AverageMeter()
     accuracies = AverageMeter()
 
@@ -42,7 +42,7 @@ def do_training_epoch(train_loader, model, device, optimiser, quiet=False, acc_j
         input, target = input.to(device), target.to(device, non_blocking=True)
         target_weight = meta['target_weight'].to(device, non_blocking=True)
 
-        output, loss = do_training_step(model, optimiser, input, target, target_weight)
+        output, loss = do_training_step(model, optimiser, input, target, data_info, target_weight)
 
         acc = accuracy(output, target, acc_joints)
 
@@ -60,7 +60,7 @@ def do_training_epoch(train_loader, model, device, optimiser, quiet=False, acc_j
     return losses.avg, accuracies.avg
 
 
-def do_validation_step(model, input, target, target_weight=None, flip=False):
+def do_validation_step(model, input, target, data_info, target_weight=None, flip=False):
     assert not model.training, 'model must be in evaluation mode.'
     assert len(input) == len(target), 'input and target must contain the same number of examples.'
 
@@ -72,11 +72,10 @@ def do_validation_step(model, input, target, target_weight=None, flip=False):
     if flip:
         # If `flip` is true, perform horizontally flipped inference as well. This should
         # result in more robust predictions at the expense of additional compute.
-        flip_input = fliplr(input.detach().clone().cpu().numpy())
-        flip_input = torch.as_tensor(flip_input, dtype=input.dtype, device=input.device)
+        flip_input = fliplr(input)
         flip_output = model(flip_input)
         flip_output = flip_output[-1].cpu()
-        flip_output = flip_back(flip_output.detach())
+        flip_output = flip_back(flip_output.detach(), data_info.hflip_indices)
         heatmaps = (output[-1].cpu() + flip_output) / 2
     else:
         heatmaps = output[-1].cpu()
@@ -85,7 +84,7 @@ def do_validation_step(model, input, target, target_weight=None, flip=False):
     return heatmaps, loss.item()
 
 
-def do_validation_epoch(val_loader, model, device, flip=False, quiet=False, acc_joints=None):
+def do_validation_epoch(val_loader, model, device, data_info, flip=False, quiet=False, acc_joints=None):
     losses = AverageMeter()
     accuracies = AverageMeter()
     predictions = [None] * len(val_loader.dataset)
@@ -105,7 +104,7 @@ def do_validation_epoch(val_loader, model, device, flip=False, quiet=False, acc_
         target = target.to(device, non_blocking=True)
         target_weight = meta['target_weight'].to(device, non_blocking=True)
 
-        heatmaps, loss = do_validation_step(model, input, target, target_weight, flip)
+        heatmaps, loss = do_validation_step(model, input, target, data_info, target_weight, flip)
 
         # Calculate PCK from the predicted heatmaps.
         acc = accuracy(heatmaps, target.cpu(), acc_joints)

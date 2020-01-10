@@ -11,6 +11,7 @@ from scipy.io import loadmat
 from tabulate import tabulate
 
 import stacked_hourglass.res
+from stacked_hourglass.datasets.common import DataInfo
 from stacked_hourglass.utils.imutils import load_image, draw_labelmap
 from stacked_hourglass.utils.misc import to_torch
 from stacked_hourglass.utils.transforms import shufflelr, crop, color_normalize, fliplr, transform
@@ -24,11 +25,15 @@ MPII_JOINT_NAMES = [
 
 
 class Mpii(data.Dataset):
-    RGB_MEAN = torch.as_tensor([0.4404, 0.4440, 0.4327])
-    RGB_STDDEV = torch.as_tensor([0.2458, 0.2410, 0.2468])
+    DATA_INFO = DataInfo(
+        rgb_mean=[0.4404, 0.4440, 0.4327],
+        rgb_stddev=[0.2458, 0.2410, 0.2468],
+        joint_names=MPII_JOINT_NAMES,
+        hflip_indices=[5, 4, 3, 2, 1, 0, 6, 7, 8, 9, 15, 14, 13, 12, 11, 10],
+    )
 
     # Suggested joints to use for average PCK calculations.
-    ACC_JOINTS = [1, 2, 3, 4, 5, 6, 11, 12, 15, 16]
+    ACC_JOINTS = [0, 1, 2, 3, 4, 5, 10, 11, 14, 15]
 
     def __init__(self, image_path, is_train=True, inp_res=256, out_res=64, sigma=1,
                  scale_factor=0.25, rot_factor=30, label_type='Gaussian'):
@@ -52,8 +57,6 @@ class Mpii(data.Dataset):
                 self.valid_list.append(idx)
             else:
                 self.train_list.append(idx)
-        self.mean = self.RGB_MEAN
-        self.std = self.RGB_STDDEV
 
     def __getitem__(self, index):
         sf = self.scale_factor
@@ -87,8 +90,8 @@ class Mpii(data.Dataset):
 
             # Flip
             if random.random() <= 0.5:
-                img = torch.from_numpy(fliplr(img.numpy())).float()
-                pts = shufflelr(pts, width=img.size(2), dataset='mpii')
+                img = fliplr(img)
+                pts = shufflelr(pts, img.size(2), self.DATA_INFO.hflip_indices)
                 c[0] = img.size(2) - c[0]
 
             # Color
@@ -98,7 +101,7 @@ class Mpii(data.Dataset):
 
         # Prepare image and groundtruth map
         inp = crop(img, c, s, [self.inp_res, self.inp_res], rot=r)
-        inp = color_normalize(inp, self.mean, self.std)
+        inp = color_normalize(inp, self.DATA_INFO.rgb_mean, self.DATA_INFO.rgb_stddev)
 
         # Generate ground truth
         tpts = pts.clone()
@@ -160,19 +163,21 @@ def evaluate_mpii_validation_accuracy(preds):
 def print_mpii_validation_accuracy(preds):
     PCKh = evaluate_mpii_validation_accuracy(preds)
 
-    head = MPII_JOINT_NAMES.index('head_top')
-    lsho = MPII_JOINT_NAMES.index('left_shoulder')
-    lelb = MPII_JOINT_NAMES.index('left_elbow')
-    lwri = MPII_JOINT_NAMES.index('left_wrist')
-    lhip = MPII_JOINT_NAMES.index('left_hip')
-    lkne = MPII_JOINT_NAMES.index('left_knee')
-    lank = MPII_JOINT_NAMES.index('left_ankle')
-    rsho = MPII_JOINT_NAMES.index('right_shoulder')
-    relb = MPII_JOINT_NAMES.index('right_elbow')
-    rwri = MPII_JOINT_NAMES.index('right_wrist')
-    rkne = MPII_JOINT_NAMES.index('right_knee')
-    rank = MPII_JOINT_NAMES.index('right_ankle')
-    rhip = MPII_JOINT_NAMES.index('right_hip')
+    joint_names = Mpii.DATA_INFO.joint_names
+
+    head = joint_names.index('head_top')
+    lsho = joint_names.index('left_shoulder')
+    lelb = joint_names.index('left_elbow')
+    lwri = joint_names.index('left_wrist')
+    lhip = joint_names.index('left_hip')
+    lkne = joint_names.index('left_knee')
+    lank = joint_names.index('left_ankle')
+    rsho = joint_names.index('right_shoulder')
+    relb = joint_names.index('right_elbow')
+    rwri = joint_names.index('right_wrist')
+    rkne = joint_names.index('right_knee')
+    rank = joint_names.index('right_ankle')
+    rhip = joint_names.index('right_hip')
 
     print(tabulate([
         ['Head', 'Shoulder', 'Elbow', 'Wrist', 'Hip', 'Knee', 'Ankle', 'Mean'],

@@ -53,7 +53,7 @@ def main(args):
                             num_workers=args.workers, pin_memory=True)
 
     # Generate predictions for the validation set.
-    _, _, predictions = do_validation_epoch(val_loader, model, device, args.flip)
+    _, _, predictions = do_validation_epoch(val_loader, model, device, Mpii.DATA_INFO, args.flip)
 
     # Report PCKh for the predictions.
     print('\nFinal validation PCKh scores:\n')
