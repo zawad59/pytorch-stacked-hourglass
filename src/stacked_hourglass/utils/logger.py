@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 
 __all__ = ['Logger']
@@ -57,11 +56,13 @@ class Logger:
 
     def plot_to_file(self, fpath, names=None, dpi=150):
         """Plot logged metrics and save the resulting figure to a file."""
+        import matplotlib.pyplot as plt
         fig = plt.figure(dpi=dpi)
         ax = fig.subplots()
         self.plot(ax, names)
         fig.savefig(fpath)
         plt.close(fig)
+        del ax, fig
 
     def close(self):
         self.file.close()
