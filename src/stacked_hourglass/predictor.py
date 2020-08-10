@@ -14,10 +14,6 @@ def _check_batched(images):
     return False
 
 
-# Output is <this> x smaller than input
-MODEL_DOWNSCALE_FACTOR = 4
-
-
 class HumanPosePredictor:
     def __init__(self, model, device=None, data_info=None, input_shape=None):
         if device is None:
@@ -32,12 +28,13 @@ class HumanPosePredictor:
         else:
             self.data_info = data_info
 
+        # Input shape ordering: H, W
         if input_shape is None:
             self.input_shape = (256, 256)
         elif isinstance(input_shape, int):
             self.input_shape = (input_shape, input_shape)
-        self.output_shape = (round(self.input_shape[0] / MODEL_DOWNSCALE_FACTOR),
-                             round(self.input_shape[1] / MODEL_DOWNSCALE_FACTOR))
+        else:
+            self.input_shape = input_shape
 
     def do_forward(self, input_tensor):
         self.model.eval()
@@ -51,7 +48,8 @@ class HumanPosePredictor:
         if was_fixed_point:
             image /= 255.0
         if image.shape[-2:] != self.input_shape:
-            image = resize(image, *self.input_shape)
+            # resize expects W, H (input shape stored as H, W)
+            image = resize(image, *self.input_shape[::-1])
         image = color_normalize(image, self.data_info.rgb_mean, self.data_info.rgb_stddev)
         return image
 
@@ -90,11 +88,13 @@ class HumanPosePredictor:
         is_batched = _check_batched(images)
         raw_images = images if is_batched else images.unsqueeze(0)
         heatmaps = self.estimate_heatmaps(raw_images, flip=flip).cpu()
-        coords = final_preds_untransformed(heatmaps, self.output_shape)
+        # final_preds_untransformed compares the first component of shape with x and second with y
+        # This relates to the image Width, Height (Heatmap has shape Height, Width)
+        coords = final_preds_untransformed(heatmaps, heatmaps.shape[-2:][::-1])
         # Rescale coords to pixel space of specified images.
         for i, image in enumerate(raw_images):
-            coords[i, :, 0] *= image.shape[-1] / self.output_shape[0]
-            coords[i, :, 1] *= image.shape[-2] / self.output_shape[1]
+            coords[i, :, 0] *= image.shape[-1] / heatmaps.shape[-1]
+            coords[i, :, 1] *= image.shape[-2] / heatmaps.shape[-2]
         if is_batched:
             return coords
         else:
