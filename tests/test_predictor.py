@@ -41,6 +41,19 @@ def test_estimate_heatmaps(device, man_running_image):
     assert heatmaps.shape == (16, 64, 64)
 
 
+def test_asymmetric_input(device, man_running_image):
+    model = hg2(pretrained=True)
+    predictor = HumanPosePredictor(model, device=device, input_shape=(512, 64))
+    orig_image = man_running_image.clone()
+    image = predictor.prepare_image(orig_image)
+    assert image.shape == (3, 512, 64)
+    heatmaps = predictor.estimate_heatmaps(image)
+    assert heatmaps.shape == (16, 128, 16)
+    joints = predictor.estimate_joints(image)
+    assert all(joints[:,  0] < 64)
+    assert all(joints[:,  1] < 512)
+
+
 def test_estimate_joints(device, man_running_image, man_running_pose):
     model = hg2(pretrained=True)
     predictor = HumanPosePredictor(model, device=device)
