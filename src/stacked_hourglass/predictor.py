@@ -14,8 +14,12 @@ def _check_batched(images):
     return False
 
 
+# Output is <this> x smaller than input
+MODEL_DOWNSCALE_FACTOR = 4
+
+
 class HumanPosePredictor:
-    def __init__(self, model, device=None, data_info=None):
+    def __init__(self, model, device=None, data_info=None, input_shape=None):
         if device is None:
             device = 'cuda' if torch.cuda.is_available() else 'cpu'
         device = torch.device(device)
@@ -28,6 +32,13 @@ class HumanPosePredictor:
         else:
             self.data_info = data_info
 
+        if input_shape is None:
+            self.input_shape = (256, 256)
+        elif isinstance(input_shape, int):
+            self.input_shape = (input_shape, input_shape)
+        self.output_shape = (round(self.input_shape[0] / MODEL_DOWNSCALE_FACTOR),
+                             round(self.input_shape[1] / MODEL_DOWNSCALE_FACTOR))
+
     def do_forward(self, input_tensor):
         self.model.eval()
         with torch.no_grad():
@@ -39,15 +50,15 @@ class HumanPosePredictor:
         image = torch.empty(image.shape, device='cpu', dtype=torch.float32).copy_(image)
         if was_fixed_point:
             image /= 255.0
-        if image.shape[-2:] != (256, 256):
-            image = resize(image, 256, 256)
+        if image.shape[-2:] != self.input_shape:
+            image = resize(image, *self.input_shape)
         image = color_normalize(image, self.data_info.rgb_mean, self.data_info.rgb_stddev)
         return image
 
     def estimate_heatmaps(self, images, flip=False):
         is_batched = _check_batched(images)
         raw_images = images if is_batched else images.unsqueeze(0)
-        input_tensor = torch.empty((len(raw_images), 3, 256, 256),
+        input_tensor = torch.empty((len(raw_images), 3, *self.input_shape),
                                    device=self.device, dtype=torch.float32)
         for i, raw_image in enumerate(raw_images):
             input_tensor[i] = self.prepare_image(raw_image)
@@ -79,11 +90,11 @@ class HumanPosePredictor:
         is_batched = _check_batched(images)
         raw_images = images if is_batched else images.unsqueeze(0)
         heatmaps = self.estimate_heatmaps(raw_images, flip=flip).cpu()
-        coords = final_preds_untransformed(heatmaps, (64, 64))
+        coords = final_preds_untransformed(heatmaps, self.output_shape)
         # Rescale coords to pixel space of specified images.
         for i, image in enumerate(raw_images):
-            coords[i, :, 0] *= image.shape[-1] / 64
-            coords[i, :, 1] *= image.shape[-2] / 64
+            coords[i, :, 0] *= image.shape[-1] / self.output_shape[0]
+            coords[i, :, 1] *= image.shape[-2] / self.output_shape[1]
         if is_batched:
             return coords
         else:
