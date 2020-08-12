@@ -2,6 +2,7 @@ import torch
 from torch.testing import assert_allclose
 
 from stacked_hourglass import HumanPosePredictor, hg2
+from stacked_hourglass.utils.imfit import fit
 
 
 def test_do_forward(device, example_input):
@@ -72,6 +73,21 @@ def test_estimate_joints(device, man_running_image, man_running_pose):
     joints = predictor.estimate_joints(man_running_image)
     assert joints.shape == (16, 2)
     assert_allclose(joints, man_running_pose, rtol=0, atol=20)
+
+
+def test_estimate_joints_fit_contain(device, man_running_image, man_running_pose):
+    # Crop the example so that it is no longer square.
+    narrow_width = 256
+    image = fit(man_running_image, (512, narrow_width), fit_mode='cover')
+    gt_joints = man_running_pose.clone()
+    gt_joints[..., 0] -= (512 - narrow_width) / 2
+    # Run inference, enforcing square input.
+    model = hg2(pretrained=True)
+    predictor = HumanPosePredictor(model, device=device, input_shape=(256, 256))
+    joints = predictor.estimate_joints(image)
+    # Check that the results are as expected.
+    assert joints.shape == (16, 2)
+    assert_allclose(joints, gt_joints, rtol=0, atol=20)
 
 
 def test_estimate_joints_with_flip(device, man_running_image, man_running_pose):

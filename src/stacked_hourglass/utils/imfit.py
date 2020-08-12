@@ -96,6 +96,16 @@ def _crop(tensor, t, l, h, w, padding_mode='constant', fill=0):
     return result
 
 
+def calculate_fit_contain_output_area(in_height, in_width, out_height, out_width):
+    ih, iw = in_height, in_width
+    k = min(out_width / iw, out_height / ih)
+    oh = round(k * ih)
+    ow = round(k * iw)
+    y_off = (out_height - oh) // 2
+    x_off = (out_width - ow) // 2
+    return y_off, x_off, oh, ow
+
+
 def fit(tensor, size, fit_mode='cover', resize_mode='bilinear', *, fill=0):
     """Fit the image within the given spatial dimensions.
 
@@ -112,14 +122,9 @@ def fit(tensor, size, fit_mode='cover', resize_mode='bilinear', *, fill=0):
     if fit_mode == 'fill':
         return _resize(tensor, size, mode=resize_mode)
     elif fit_mode == 'contain':
-        ih, iw = tensor.shape[-2:]
-        k = min(size[-1] / iw, size[-2] / ih)
-        oh = round(k * ih)
-        ow = round(k * iw)
+        y_off, x_off, oh, ow = calculate_fit_contain_output_area(*tensor.shape[-2:], *size)
         resized = _resize(tensor, (oh, ow), mode=resize_mode)
         result = tensor.new_full((*tensor.size()[:-2], *size), fill)
-        y_off = (size[-2] - oh) // 2
-        x_off = (size[-1] - ow) // 2
         result[..., y_off:y_off + oh, x_off:x_off + ow] = resized
         return result
     elif fit_mode == 'cover':

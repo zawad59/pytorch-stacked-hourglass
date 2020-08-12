@@ -2,7 +2,7 @@ import torch
 
 from stacked_hourglass.datasets.mpii import Mpii
 from stacked_hourglass.utils.evaluation import final_preds_untransformed
-from stacked_hourglass.utils.imfit import fit
+from stacked_hourglass.utils.imfit import fit, calculate_fit_contain_output_area
 from stacked_hourglass.utils.transforms import color_normalize, fliplr, flip_back
 
 
@@ -90,7 +90,7 @@ class HumanPosePredictor:
                          averages the results.
 
         Returns:
-            The predicted human joint locations.
+            The predicted human joint locations in image pixel space.
         """
         is_batched = _check_batched(images)
         raw_images = images if is_batched else images.unsqueeze(0)
@@ -100,8 +100,15 @@ class HumanPosePredictor:
         coords = final_preds_untransformed(heatmaps, heatmaps.shape[-2:][::-1])
         # Rescale coords to pixel space of specified images.
         for i, image in enumerate(raw_images):
-            coords[i, :, 0] *= image.shape[-1] / heatmaps.shape[-1]
-            coords[i, :, 1] *= image.shape[-2] / heatmaps.shape[-2]
+            # When returning to original image space we need to compensate for the fact that we are
+            # used fit_mode='contain' when preparing the images for inference.
+            y_off, x_off, height, width = calculate_fit_contain_output_area(*image.shape[-2:], *self.input_shape)
+            coords[i, :, 1] *= self.input_shape[-2] / heatmaps.shape[-2]
+            coords[i, :, 1] -= y_off
+            coords[i, :, 1] *= image.shape[-2] / height
+            coords[i, :, 0] *= self.input_shape[-1] / heatmaps.shape[-1]
+            coords[i, :, 0] -= x_off
+            coords[i, :, 0] *= image.shape[-1] / width
         if is_batched:
             return coords
         else:
