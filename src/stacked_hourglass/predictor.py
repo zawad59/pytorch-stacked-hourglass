@@ -2,7 +2,7 @@ import torch
 
 from stacked_hourglass.datasets.mpii import Mpii
 from stacked_hourglass.utils.evaluation import final_preds_untransformed
-from stacked_hourglass.utils.imutils import resize
+from stacked_hourglass.utils.imfit import fit
 from stacked_hourglass.utils.transforms import color_normalize, fliplr, flip_back
 
 
@@ -16,6 +16,14 @@ def _check_batched(images):
 
 class HumanPosePredictor:
     def __init__(self, model, device=None, data_info=None, input_shape=None):
+        """Helper class for predicting 2D human pose joint locations.
+
+        Args:
+            model: The model for generating joint heatmaps.
+            device: The computational device to use for inference.
+            data_info: Specifications of the data (defaults to ``Mpii.DATA_INFO``).
+            input_shape: The input dimensions of the model (height, width).
+        """
         if device is None:
             device = 'cuda' if torch.cuda.is_available() else 'cpu'
         device = torch.device(device)
@@ -44,12 +52,11 @@ class HumanPosePredictor:
 
     def prepare_image(self, image):
         was_fixed_point = not image.is_floating_point()
-        image = torch.empty(image.shape, device='cpu', dtype=torch.float32).copy_(image)
+        image = torch.empty_like(image, dtype=torch.float32).copy_(image)
         if was_fixed_point:
             image /= 255.0
         if image.shape[-2:] != self.input_shape:
-            # resize expects W, H (input shape stored as H, W)
-            image = resize(image, *self.input_shape[::-1])
+            image = fit(image, self.input_shape, fit_mode='contain')
         image = color_normalize(image, self.data_info.rgb_mean, self.data_info.rgb_stddev)
         return image
 

@@ -4,7 +4,9 @@ from pathlib import Path
 import pytest
 import torch
 
-from stacked_hourglass.utils.imutils import load_image, resize
+from stacked_hourglass.datasets.common import DataInfo
+from stacked_hourglass.utils.imfit import fit
+from stacked_hourglass.utils.imutils import load_image
 from stacked_hourglass.utils.transforms import color_normalize
 
 ALL_DEVICES = ['cpu']
@@ -68,7 +70,7 @@ def man_running_pose():
 def example_input(man_running_image):
     mean = torch.as_tensor([0.4404, 0.4440, 0.4327])
     std = torch.as_tensor([0.2458, 0.2410, 0.2468])
-    image = resize(man_running_image, 256, 256)
+    image = fit(man_running_image, (256, 256), fit_mode='contain')
     image = color_normalize(image, mean, std)
     return image.unsqueeze(0)
 
@@ -98,3 +100,13 @@ def h36m_pose():
         [113, 107],  # left_elbow
         [106, 123],  # left_wrist
     ], dtype=torch.float32)
+
+
+@pytest.fixture
+def dummy_data_info():
+    return DataInfo(
+        rgb_mean=[0, 0, 0],
+        rgb_stddev=[1, 1, 1],
+        joint_names=[],
+        hflip_indices=[],
+    )
