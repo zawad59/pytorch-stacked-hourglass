@@ -118,7 +118,7 @@ class Mpii(data.Dataset):
         for i in range(nparts):
             # if tpts[i, 2] > 0: # This is evil!!
             if tpts[i, 1] > 0:
-                tpts[i, 0:2] = to_torch(transform(tpts[i, 0:2]+1, c, s, [self.out_res, self.out_res], rot=r))
+                tpts[i, 0:2] = to_torch(transform(tpts[i, 0:2]+1, c, s, self.out_res, rot=r))
                 target[i], vis = draw_labelmap(target[i], tpts[i]-1, self.sigma, type=self.label_type)
                 target_weight[i, 0] *= vis
 

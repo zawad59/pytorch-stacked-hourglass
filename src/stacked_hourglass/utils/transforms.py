@@ -41,12 +41,9 @@ def get_transform(center, scale, res, rot=0):
     """
     General image processing functions
     """
-    # If given 1D scale as a torch Tensor, convert to a pair of scales
-    if isinstance(scale, torch.Tensor) and scale.ndim == 0:
-        scale = [scale, scale]
-
-    if not isinstance(scale, (list, torch.Tensor)):
-        scale = [scale, scale]
+    scale = np.asarray(scale).flatten()
+    if len(scale) == 1:
+        scale = scale.repeat(2)
 
     # Generate transformation matrix
     h = 200 * scale[0]
@@ -98,12 +95,9 @@ def crop(img, center, scale, res, rot=0):
     scale: [H/200, W/200]
     res: H,W
     """
-    # If given 1D scale as a torch Tensor, convert to a pair of scales
-    if isinstance(scale, torch.Tensor) and scale.ndim == 0:
-        scale = [scale, scale]
-
-    if not isinstance(scale, (list, torch.Tensor)):
-        scale = [scale, scale]
+    scale = np.asarray(scale).flatten()
+    if len(scale) == 1:
+        scale = scale.repeat(2)
 
     img = im_to_numpy(img)
 
