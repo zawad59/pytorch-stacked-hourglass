@@ -41,6 +41,10 @@ def get_transform(center, scale, res, rot=0):
     """
     General image processing functions
     """
+    # If given 1D scale as a torch Tensor, convert to a pair of scales
+    if isinstance(scale, torch.Tensor) and scale.ndim == 0:
+        scale = [scale, scale]
+
     if not isinstance(scale, (list, torch.Tensor)):
         scale = [scale, scale]
 
@@ -94,6 +98,10 @@ def crop(img, center, scale, res, rot=0):
     scale: [H/200, W/200]
     res: H,W
     """
+    # If given 1D scale as a torch Tensor, convert to a pair of scales
+    if isinstance(scale, torch.Tensor) and scale.ndim == 0:
+        scale = [scale, scale]
+
     if not isinstance(scale, (list, torch.Tensor)):
         scale = [scale, scale]
 
