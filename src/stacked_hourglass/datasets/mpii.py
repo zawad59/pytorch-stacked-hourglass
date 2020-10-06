@@ -35,12 +35,19 @@ class Mpii(data.Dataset):
     # Suggested joints to use for average PCK calculations.
     ACC_JOINTS = [0, 1, 2, 3, 4, 5, 10, 11, 14, 15]
 
-    def __init__(self, image_path, is_train=True, inp_res=256, out_res=64, sigma=1,
-                 scale_factor=0.25, rot_factor=30, label_type='Gaussian'):
+    # The ratio between input spatial resolution vs. output heatmap spatial resolution
+    INPUT_OUTPUT_RATIO = 4
+
+    def __init__(self, image_path, is_train=True, inp_res=256, sigma=1, scale_factor=0.25,
+                 rot_factor=30, label_type='Gaussian'):
         self.img_folder = image_path # root image folders
         self.is_train = is_train # training set or test set
-        self.inp_res = inp_res
-        self.out_res = out_res
+        if not isinstance(inp_res, (list, tuple)):  # Input res stored as (H, W)
+            self.inp_res = [inp_res, inp_res]
+        else:
+            self.inp_res = inp_res
+        self.out_res = [int(self.inp_res[0] / self.INPUT_OUTPUT_RATIO),
+                        int(self.inp_res[1] / self.INPUT_OUTPUT_RATIO)]
         self.sigma = sigma
         self.scale_factor = scale_factor
         self.rot_factor = rot_factor
@@ -100,22 +107,25 @@ class Mpii(data.Dataset):
             img[2, :, :].mul_(random.uniform(0.8, 1.2)).clamp_(0, 1)
 
         # Prepare image and groundtruth map
-        inp = crop(img, c, s, [self.inp_res, self.inp_res], rot=r)
+        inp = crop(img, c, s, self.inp_res, rot=r)
         inp = color_normalize(inp, self.DATA_INFO.rgb_mean, self.DATA_INFO.rgb_stddev)
 
         # Generate ground truth
         tpts = pts.clone()
-        target = torch.zeros(nparts, self.out_res, self.out_res)
+        target = torch.zeros(nparts, *self.out_res)
         target_weight = tpts[:, 2].clone().view(nparts, 1)
 
         for i in range(nparts):
             # if tpts[i, 2] > 0: # This is evil!!
             if tpts[i, 1] > 0:
-                tpts[i, 0:2] = to_torch(transform(tpts[i, 0:2]+1, c, s, [self.out_res, self.out_res], rot=r))
+                tpts[i, 0:2] = to_torch(transform(tpts[i, 0:2]+1, c, s, self.out_res, rot=r))
                 target[i], vis = draw_labelmap(target[i], tpts[i]-1, self.sigma, type=self.label_type)
                 target_weight[i, 0] *= vis
 
         # Meta info
+        if not isinstance(s, torch.Tensor):
+            s = torch.Tensor(s)
+
         meta = {'index' : index, 'center' : c, 'scale' : s,
         'pts' : pts, 'tpts' : tpts, 'target_weight': target_weight}
 

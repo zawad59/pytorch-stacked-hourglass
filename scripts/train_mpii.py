@@ -62,14 +62,14 @@ def main(args):
         logger.set_names(['Epoch', 'LR', 'Train Loss', 'Val Loss', 'Train Acc', 'Val Acc'])
 
     # create data loader
-    train_dataset = Mpii(args.image_path, is_train=True)
+    train_dataset = Mpii(args.image_path, is_train=True, inp_res=args.input_shape)
     train_loader = DataLoader(
         train_dataset,
         batch_size=args.train_batch, shuffle=True,
         num_workers=args.workers, pin_memory=True
     )
 
-    val_dataset = Mpii(args.image_path, is_train=False)
+    val_dataset = Mpii(args.image_path, is_train=False, inp_res=args.input_shape)
     val_loader = DataLoader(
         val_dataset,
         batch_size=args.test_batch, shuffle=False,
@@ -125,6 +125,8 @@ if __name__ == '__main__':
                         choices=['hg1', 'hg2', 'hg8'],
                         help='model architecture')
     # Training strategy
+    parser.add_argument('--input_shape', default=(256, 256), type=int, nargs='+',
+                        help='Input shape of the model. Given as: (H, W)')
     parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                         help='number of data loading workers (default: 4)')
     parser.add_argument('--epochs', default=100, type=int, metavar='N',
