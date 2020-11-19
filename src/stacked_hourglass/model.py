@@ -3,6 +3,7 @@ Hourglass network inserted in the pre-activated Resnet
 Use lr=0.01 for current version
 (c) YANG, Wei
 '''
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.hub import load_state_dict_from_url
@@ -194,7 +195,8 @@ def hg(**kwargs):
 def _hg(arch, pretrained, progress, **kwargs):
     model = hg(**kwargs)
     if pretrained:
-        state_dict = load_state_dict_from_url(model_urls[arch], progress=progress)
+        state_dict = load_state_dict_from_url(model_urls[arch], progress=progress,
+                                              map_location=torch.device('cpu'))
         model.load_state_dict(state_dict)
     return model
 
